@@ -19,7 +19,6 @@ webscraper/
 ├── config.yaml                      # Configuración
 ├── config/                          # Carga de configuración
 ├── domain/                          # Entidades e interfaces
-=======
 ├── domain/                          # Entidades y interfaces
 ├── usecase/                         # Lógica de negocio
 ├── infrastructure/                  # Implementaciones concretas

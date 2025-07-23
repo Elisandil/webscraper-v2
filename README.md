@@ -141,7 +141,8 @@ npm start
   <img src="assets/RegisterForm.png" alt="Register View" />
   <figcaption>Figura 1. Pantalla de Registro de usuario</figcaption>
 </figure>
-<br />
+
+  
 2. Login: POST /api/auth/login
 
 ```json
@@ -154,7 +155,8 @@ El token se guarda en localStorage.
   <img src="assets/LoginForm.png" alt="Login View" />
   <figcaption>Figura 2. Pantalla de Autenticación del usuario</figcaption>
 </figure>
-<br />
+
+  
 3. Scraping: POST /api/scrape
 
 ```json
@@ -169,7 +171,8 @@ Solo devuelve los scrapes del usuario autenticado.
     <img src="assets/MainView.png" alt="Main View" />
     <figcaption>Figura 3. Pantalla de resultados scrapeados</figcaption>
 </figure>
-<br />
+
+  
 4. Detalles 
 - /eliminación
 - GET /api/results/{id}
@@ -179,8 +182,8 @@ Solo devuelve los scrapes del usuario autenticado.
     <img src="assets/ScrapingModal.png" alt="Scraping Modal" />
     <figcaption>Figura 4. Pantalla de diálogo modal con los resultados de una web</figcaption>
 </figure>
-<br />
-5. Health check: GET /api/health
 
+  
+5. Health check: GET /api/health
 6. Cerrar sesión
 En el frontend, pulsa “Cerrar sesión” para limpiar el token y volver al login.

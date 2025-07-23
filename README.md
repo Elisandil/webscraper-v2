@@ -131,19 +131,18 @@ npm start
 
 
 ## Flujo de Uso
-Registro: POST /api/auth/register
+1. Registro: POST /api/auth/register
 
 ```json
 { "username":"usuario", "email":"u@ej.com", "password":"secret" }
 ```
-
 
 <figure>
   <img src="assets/RegisterForm.png" alt="Register View" />
   <figcaption>Figura 1. Pantalla de Registro de usuario</figcaption>
 </figure>
 
-Login: POST /api/auth/login
+2. Login: POST /api/auth/login
 
 ```json
 { "username":"usuario", "password":"secret" }
@@ -151,15 +150,12 @@ Login: POST /api/auth/login
 Recibirás { message, data: { token, user, expires_at } }.
 El token se guarda en localStorage.
 
-
 <figure>
   <img src="assets/LoginForm.png" alt="Login View" />
   <figcaption>Figura 2. Pantalla de Autenticación del usuario</figcaption>
 </figure>
 
-
-
-Scraping: POST /api/scrape
+3. Scraping: POST /api/scrape
 
 ```json
 { "url":"https://ejemplo.com" }
@@ -169,38 +165,22 @@ Devuelve el objeto ScrapingResult y lo persiste asociado al usuario.
 Listar resultados: GET /api/results
 Solo devuelve los scrapes del usuario autenticado.
 
-
 <figure>
     <img src="assets/MainView.png" alt="Main View" />
     <figcaption>Figura 3. Pantalla de resultados scrapeados</figcaption>
 </figure>
 
-
-Detalles 
+4. Detalles 
 - /eliminación
 - GET /api/results/{id}
 - DELETE /api/results/{id}
-
 
 <figure>
     <img src="assets/ScrapingModal.png" alt="Scraping Modal" />
     <figcaption>Figura 4. Pantalla de diálogo modal con los resultados de una web</figcaption>
 </figure>
 
+5. Health check: GET /api/health
 
-
-Health check: GET /api/health
-
-Cerrar sesión
+6. Cerrar sesión
 En el frontend, pulsa “Cerrar sesión” para limpiar el token y volver al login.
-
-
-## Desarrollo
-* Sigue Clean Architecture, separando Domain, Use Cases e Infrastructure.
-* Cada capa sólo depende de la anterior.
-* El backend registra logs con log.Printf; usa DevTools para depurar peticiones.
-* La tabla scraping_results almacena:
-    user_id, url, title, description
-    keywords, author, language, favicon, image_url, site_name
-    links (JSON), images (JSON), headers (JSON)
-    status_code, content_type, word_count, load_time_ms, created_at

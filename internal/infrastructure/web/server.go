@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"webscraper/internal/config"
-	"webscraper/internal/domain/entity"
-	"webscraper/internal/usecase"
+	"webscraper-v2/internal/config"
+	"webscraper-v2/internal/domain/entity"
+	"webscraper-v2/internal/usecase"
 
 	"github.com/gorilla/mux"
 )

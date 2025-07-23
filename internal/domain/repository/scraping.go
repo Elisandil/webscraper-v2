@@ -1,6 +1,6 @@
 package repository
 
-import "webscraper/internal/domain/entity"
+import "webscraper-v2/internal/domain/entity"
 
 type ScrapingRepository interface {
 	Save(result *entity.ScrapingResult) error

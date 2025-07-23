@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"webscraper/internal/config"
-	"webscraper/internal/domain/entity"
-	"webscraper/internal/domain/repository"
+	"webscraper-v2/internal/config"
+	"webscraper-v2/internal/domain/entity"
+	"webscraper-v2/internal/domain/repository"
 
 	"golang.org/x/net/html"
 )

@@ -1,12 +1,10 @@
 # WebScraper App
 
-Una aplicación de webscraping construida con Go 1.24 siguiendo principios de Clean Architecture.
+Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links, imágenes y contenido de páginas web, con Go en el backend y React + Tailwind CSS en el frontend. Incluye autenticación JWT y almacenamiento de resultados por usuario en SQLite.
 
 ## Características
-
 - Clean Architecture (Domain, Use Cases, Infrastructure)
-- Interfaz web con HTML, CSS (Tailwind) y JavaScript (SPA)
-- Interfaz web moderna con HTML, CSS (Tailwind) y JavaScript
+- Interfaz web hecha con React
 - Persistencia SQLite sin CGO
 - Configuración mediante archivo YAML
 - API REST para operaciones CRUD
@@ -14,42 +12,153 @@ Una aplicación de webscraping construida con Go 1.24 siguiendo principios de Cl
 ## Estructura del Proyecto
 
 ```
-webscraper/
-├── main.go                          # Punto de entrada
-├── config.yaml                      # Configuración
-├── config/                          # Carga de configuración
-├── domain/                          # Entidades e interfaces
-├── usecase/                         # Lógica de negocio
-├── infrastructure/                  # Implementaciones concretas
-├── interface/
-    ├── static/
-        └── js/                      # Js para el HTML
-    └── /templates/                  # Templates HTML
+/
+├── config.yaml              # Configuración de servidor, BD, scraping y auth
+├── data/                    # Base de datos SQLite (scraper.db)
+├── internal/
+│   ├── config/              # Carga de YAML
+│   ├── domain/
+│   ├── infrastructure/
+│   │   ├── database/        # SQLite + migraciones
+│   │   ├── repository/      # Implementación de repositorios
+│   │   └── web/             # Servidor HTTP y middleware
+│   └── usecase/             # Lógica de negocio
+├── main.go                  # Punto de entrada del backend
+├── go.mod, go.sum           # Dependencias Go
+└── webscrapper-frontend/    # Proyecto React + Tailwind
+    ├── public/
+    ├── src/
+    ├── package.json
+    └── tailwind.config.js
 ```
 
 ## Requisitos
+- Go ≥ 1.24
+- Node.js ≥ 16 y npm
+- SQLite (integrado en Go con modernc.org/sqlite)
 
-- Go 1.24+
-- Puerto 8080 disponible
+## Arquitectura
+### Domain Layer
+- `entity/scraping.go`: Entidad ScrapingResult
+- `entity/user.go`: Entidad User
+- `repository/scraping.go`: Interface del repositorio de Scraping
+- `repository/user.go`: Interfaz del repositorio de User
+
+### Use Case Layer
+- `usecase/scraping.go`: Lógica de negocio para Scraping
+- `usecase/auth.go`: Lógica para la autenticación de usuarios
+
+### Infrastructure Layer
+- `database/sqlite.go`: Conexión SQLite
+- `persistence/scraping_repository.go`: Implementación del repositorio de Scraping
+- `persistence/user_repository.go`: Implementación del repositorio de User
+- `web/server.go`: Servidor HTTP y handlers
+- `web/middleware.go`: Middleware JWT (RequireAuth, OptionalAuth, roles)
+
+### Presentation Layer
+- Frontend hecho con React, usando componentes
+
+## Dependencias
+Go
+- `github.com/gorilla/mux`: Router HTTP
+- `golang.org/x/net`: Parsing HTML
+- `gopkg.in/yaml.v3`: Configuración YAML
+- `modernc.org/sqlite`: Driver SQLite sin CGO
+- `github.com/golang-jwt/jwt/v5`: JWT
+- `golang.org/x/crypto/bcrypt`: Hash de contraseñas
+
+Frontend
+- `react, react-dom, react-scripts`
+- `tailwindcss@^3.4.17`: Utilidades CSS
 
 ## Instalación y Uso
 
-1. **Configurar:**
-```bash
-cd webscraper
-make setup
+1. Copia y ajusta config.yaml:
+```yaml
+server:
+  port: "8080"
+
+database:
+  path: "./data/scraper.db"
+
+scraping:
+  user_agent: "WebScraper/1.0"
+  timeout: 30
+  max_redirects: 10
+  extract_images: true
+  extract_favicon: true
+  extract_headers: true
+  max_links: 100
+  max_images: 50
+
+features:
+  enable_analytics: true
+  enable_caching: false
+  cache_duration: 3600
+
+auth:
+  require_auth: true
+  jwt_secret: "tu_secreto_seguro"
+  token_duration_hours: 24
+  default_role: "user"
 ```
 
-2. **Ejecutar: (Testing)**
+2. Asegúrate de tener creada la carpeta data/ o déjalo al inicializar.
+
+3. **Levantar el backend**
 ```bash
-make run
+cd <ruta-del-proyecto>
+go run main.go
 ```
 
-3. **Acceder:**
-Abre http://localhost:8080 en tu navegador
+- Lee config.yaml.
+- Crea/actualiza data/scraper.db con tablas y trigger.
+- Inicia servidor en http://localhost:8080.
+
+4. **Levantar el frontend**
+```bash
+cd webscrapper-frontend
+npm install
+npm start
+```
+
+- Usa proxy a http://localhost:8080 (definido en package.json).
+- Abre http://localhost:3000.
 
 
-## API Endpoints
+## Flujo de Uso
+
+Registro: POST /api/auth/register
+```json
+{ "username":"usuario", "email":"u@ej.com", "password":"secret" }
+```
+
+Login: POST /api/auth/login
+```json
+{ "username":"usuario", "password":"secret" }
+```
+
+Recibirás { message, data: { token, user, expires_at } }.
+El token se guarda en localStorage.
+
+Scraping: POST /api/scrape
+```json
+{ "url":"https://ejemplo.com" }
+```
+
+Devuelve el objeto ScrapingResult y lo persiste asociado al usuario.
+
+Listar resultados: GET /api/results
+Solo devuelve los scrapes del usuario autenticado.
+
+Detalles / eliminación
+    GET /api/results/{id}
+    DELETE /api/results/{id}
+
+Health check: GET /api/health
+
+Cerrar sesión
+En el frontend, pulsa “Cerrar sesión” para limpiar el token y volver al login.
 
 - `GET /` - Interfaz web
 - `POST /api/scrape` - Extraer datos de URL
@@ -73,48 +182,12 @@ scraping:
   timeout: 30
 ```
 
-## Arquitectura
-
-### Domain Layer
-- `entity/scraping.go`: Entidad ScrapingResult
-- `repository/scraping.go`: Interface del repositorio
-
-### Use Case Layer
-- `usecase/scraping.go`: Lógica de negocio para scraping
-
-### Infrastructure Layer
-- `database/sqlite.go`: Conexión SQLite
-- `repository/scraping_repository.go`: Implementación del repositorio
-- `web/server.go`: Servidor HTTP y handlers
-
-## Dependencias
-
-- `github.com/gorilla/mux`: Router HTTP
-- `golang.org/x/net`: Parsing HTML
-- `gopkg.in/yaml.v3`: Configuración YAML
-- `modernc.org/sqlite`: Driver SQLite sin CGO
-
-## Comandos Make
-
-- `make build` - Compilar aplicación
-- `make run` - Ejecutar aplicación
-- `make test` - Ejecutar tests
-- `make clean` - Limpiar archivos generados
-- `make deps` - Instalar dependencias
-- `make setup` - Configuración inicial
-
 ## Desarrollo
-
-La aplicación sigue un patrón de Clean Architecture:
-La aplicación sigue Clean Architecture:
-
-1. **Domain**: Entidades y reglas de negocio
-2. **Use Cases**: Lógica de aplicación
-3. **Infrastructure**: Detalles técnicos (DB, Web, etc.)
-
-Los datos extraídos incluyen:
-- Título de la página
-- Meta descripción
-- Enlaces encontrados
-- Timestamp de extracción
-- Timestamp de extracción
+* Sigue Clean Architecture, separando Domain, Use Cases e Infrastructure.
+* Cada capa sólo depende de la anterior.
+* El backend registra logs con log.Printf; usa DevTools para depurar peticiones.
+* La tabla scraping_results almacena:
+    user_id, url, title, description
+    keywords, author, language, favicon, image_url, site_name
+    links (JSON), images (JSON), headers (JSON)
+    status_code, content_type, word_count, load_time_ms, created_at

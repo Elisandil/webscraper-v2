@@ -201,3 +201,10 @@ Solo devuelve los scrapes del usuario autenticado.
 
   
 5. Health check: GET /api/health
+
+
+## Autoría
+Desarrollado por Antonio Ortega.
+
+## Licencia
+Proyecto desarrollado con fines educativos/formativos.

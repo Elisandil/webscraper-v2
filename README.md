@@ -15,6 +15,8 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
 - [Dependencias](#dependencias)
 - [Instalación y Uso](#instalación-y-uso)
 - [Flujo de Uso](#flujo-de-uso)
+- [Autor](#autor)
+- [Licencia](#licencia)
 
 
 

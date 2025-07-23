@@ -46,6 +46,8 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
 └── webscrapper-frontend/    # Proyecto React + Tailwind
     ├── public/
     ├── src/
+       ├── api/
+       └── components/
     ├── package.json
     └── tailwind.config.js
 ```

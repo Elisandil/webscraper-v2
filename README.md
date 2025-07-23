@@ -5,11 +5,8 @@ Una aplicación de webscraping construida con Go 1.24 siguiendo principios de Cl
 ## Características
 
 - Clean Architecture (Domain, Use Cases, Infrastructure)
-<<<<<<< HEAD
 - Interfaz web con HTML, CSS (Tailwind) y JavaScript (SPA)
-=======
 - Interfaz web moderna con HTML, CSS (Tailwind) y JavaScript
->>>>>>> master
 - Persistencia SQLite sin CGO
 - Configuración mediante archivo YAML
 - API REST para operaciones CRUD
@@ -21,11 +18,7 @@ webscraper/
 ├── main.go                          # Punto de entrada
 ├── config.yaml                      # Configuración
 ├── config/                          # Carga de configuración
-<<<<<<< HEAD
 ├── domain/                          # Entidades e interfaces
-=======
-├── domain/                          # Entidades y interfaces
->>>>>>> master
 ├── usecase/                         # Lógica de negocio
 ├── infrastructure/                  # Implementaciones concretas
 ├── interface/
@@ -112,11 +105,8 @@ scraping:
 
 ## Desarrollo
 
-<<<<<<< HEAD
 La aplicación sigue un patrón de Clean Architecture:
-=======
 La aplicación sigue Clean Architecture:
->>>>>>> master
 
 1. **Domain**: Entidades y reglas de negocio
 2. **Use Cases**: Lógica de aplicación
@@ -126,8 +116,5 @@ Los datos extraídos incluyen:
 - Título de la página
 - Meta descripción
 - Enlaces encontrados
-<<<<<<< HEAD
 - Timestamp de extracción
-=======
 - Timestamp de extracción
->>>>>>> master

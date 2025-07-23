@@ -2,12 +2,14 @@
 
 Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links, imágenes y contenido de páginas web, con Go en el backend y React + Tailwind CSS en el frontend. Incluye autenticación JWT y almacenamiento de resultados por usuario en SQLite.
 
+
 ## Características
 - Clean Architecture (Domain, Use Cases, Infrastructure)
 - Interfaz web hecha con React
 - Persistencia SQLite sin CGO
 - Configuración mediante archivo YAML
 - API REST para operaciones CRUD
+
 
 ## Estructura del Proyecto
 
@@ -32,10 +34,12 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
     └── tailwind.config.js
 ```
 
+
 ## Requisitos
 - Go ≥ 1.24
 - Node.js ≥ 16 y npm
 - SQLite (integrado en Go con modernc.org/sqlite)
+
 
 ## Arquitectura
 ### Domain Layer
@@ -71,9 +75,10 @@ Frontend
 - `react, react-dom, react-scripts`
 - `tailwindcss@^3.4.17`: Utilidades CSS
 
-## Instalación y Uso
 
+## Instalación y Uso
 1. Copia y ajusta config.yaml:
+   
 ```yaml
 server:
   port: "8080"
@@ -102,58 +107,78 @@ auth:
   token_duration_hours: 24
   default_role: "user"
 ```
+NOTA: Asegúrate de tener creada la carpeta data/ o déjalo al inicializar.
 
-2. Asegúrate de tener creada la carpeta data/ o déjalo al inicializar.
-
-3. **Levantar el backend**
+2. **Levantar el backend**
+   
 ```bash
 cd <ruta-del-proyecto>
 go run main.go
 ```
-
 - Lee config.yaml.
 - Crea/actualiza data/scraper.db con tablas y trigger.
 - Inicia servidor en http://localhost:8080.
 
-4. **Levantar el frontend**
+3. **Levantar el frontend**
+   
 ```bash
 cd webscrapper-frontend
 npm install
 npm start
 ```
-
 - Usa proxy a http://localhost:8080 (definido en package.json).
 - Abre http://localhost:3000.
 
 
 ## Flujo de Uso
-
 Registro: POST /api/auth/register
+
 ```json
 { "username":"usuario", "email":"u@ej.com", "password":"secret" }
 ```
 
+<figure>
+  <img src="assets/RegisterForm" alt="Register View" />
+  <figcaption>Figura 1. Pantalla de Registro de usuario</figcaption>
+</figure>
+
 Login: POST /api/auth/login
+
 ```json
 { "username":"usuario", "password":"secret" }
 ```
-
 Recibirás { message, data: { token, user, expires_at } }.
 El token se guarda en localStorage.
 
+<figure>
+  <img src="assets/LoginForm" alt="Login View" />
+  <figcaption>Figura 2. Pantalla de Autenticación del usuario</figcaption>
+</figure>
+
 Scraping: POST /api/scrape
+
 ```json
 { "url":"https://ejemplo.com" }
 ```
-
 Devuelve el objeto ScrapingResult y lo persiste asociado al usuario.
 
 Listar resultados: GET /api/results
 Solo devuelve los scrapes del usuario autenticado.
 
-Detalles / eliminación
+<figure>
+    <img src="assets/MainView.png" alt="Main View" />
+    <figcaption>Figura 3. Pantalla de resultados scrapeados</figcaption>
+</figure>
+
+Detalles 
+    /eliminación
     GET /api/results/{id}
     DELETE /api/results/{id}
+
+<figure>
+    <img src="assets/ScrapingModal.png" alt="Scraping Modal" />
+    <figcaption>Figura 4. Pantalla de diálogo modal con los resultados de una web</figcaption>
+</figure>
 
 Health check: GET /api/health
 
@@ -165,22 +190,6 @@ En el frontend, pulsa “Cerrar sesión” para limpiar el token y volver al log
 - `GET /api/results` - Listar todos los resultados
 - `GET /api/results/{id}` - Obtener resultado específico
 - `DELETE /api/results/{id}` - Eliminar resultado
-
-## Configuración
-
-El archivo `config.yaml` permite configurar:
-
-```yaml
-server:
-  port: "8080"
-
-database:
-  path: "./data/scraper.db"
-
-scraping:
-  user_agent: "WebScraper/1.0"
-  timeout: 30
-```
 
 ## Desarrollo
 * Sigue Clean Architecture, separando Domain, Use Cases e Infrastructure.

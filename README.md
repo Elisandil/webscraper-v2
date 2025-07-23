@@ -140,10 +140,7 @@ Registro: POST /api/auth/register
 
 <figure>
   <img src="assets/RegisterForm.png" alt="Register View" />
-  <figcaption>Figura 1. Pantalla de Registro de usuario
-  
-  
-  </figcaption>
+  <figcaption>Figura 1. Pantalla de Registro de usuario</figcaption>
 </figure>
 
 Login: POST /api/auth/login

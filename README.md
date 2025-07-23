@@ -3,6 +3,22 @@
 Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links, imágenes y contenido de páginas web, con Go en el backend y React + Tailwind CSS en el frontend. Incluye autenticación JWT y almacenamiento de resultados por usuario en SQLite.
 
 
+## Índice
+- [Características](#características)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Requisitos](#requisitos)
+- [Arquitectura](#arquitectura)
+  - [Domain Layer](#domain-layer)
+  - [Use Case Layer](#use-case-layer)
+  - [Infrastructure Layer](#infrastructure-layer)
+  - [Presentation Layer](#presentation-layer)
+- [Dependencias](#dependencias)
+- [Instalación y Uso](#instalación-y-uso)
+- [Flujo de Uso](#flujo-de-uso)
+
+
+
+
 ## Características
 - Clean Architecture (Domain, Use Cases, Infrastructure)
 - Interfaz web hecha con React
@@ -185,5 +201,3 @@ Solo devuelve los scrapes del usuario autenticado.
 
   
 5. Health check: GET /api/health
-6. Cerrar sesión
-En el frontend, pulsa “Cerrar sesión” para limpiar el token y volver al login.

@@ -137,10 +137,13 @@ Registro: POST /api/auth/register
 { "username":"usuario", "email":"u@ej.com", "password":"secret" }
 ```
 
+
 <figure>
   <img src="assets/RegisterForm.png" alt="Register View" />
   <figcaption>Figura 1. Pantalla de Registro de usuario</figcaption>
 </figure>
+
+
 
 Login: POST /api/auth/login
 
@@ -150,10 +153,13 @@ Login: POST /api/auth/login
 Recibirás { message, data: { token, user, expires_at } }.
 El token se guarda en localStorage.
 
+
 <figure>
   <img src="assets/LoginForm.png" alt="Login View" />
   <figcaption>Figura 2. Pantalla de Autenticación del usuario</figcaption>
 </figure>
+
+
 
 Scraping: POST /api/scrape
 
@@ -165,31 +171,31 @@ Devuelve el objeto ScrapingResult y lo persiste asociado al usuario.
 Listar resultados: GET /api/results
 Solo devuelve los scrapes del usuario autenticado.
 
+
 <figure>
     <img src="assets/MainView.png" alt="Main View" />
     <figcaption>Figura 3. Pantalla de resultados scrapeados</figcaption>
 </figure>
 
+
 Detalles 
-    /eliminación
-    GET /api/results/{id}
-    DELETE /api/results/{id}
+- /eliminación
+- GET /api/results/{id}
+- DELETE /api/results/{id}
+
 
 <figure>
     <img src="assets/ScrapingModal.png" alt="Scraping Modal" />
     <figcaption>Figura 4. Pantalla de diálogo modal con los resultados de una web</figcaption>
 </figure>
 
+
+
 Health check: GET /api/health
 
 Cerrar sesión
 En el frontend, pulsa “Cerrar sesión” para limpiar el token y volver al login.
 
-- `GET /` - Interfaz web
-- `POST /api/scrape` - Extraer datos de URL
-- `GET /api/results` - Listar todos los resultados
-- `GET /api/results/{id}` - Obtener resultado específico
-- `DELETE /api/results/{id}` - Eliminar resultado
 
 ## Desarrollo
 * Sigue Clean Architecture, separando Domain, Use Cases e Infrastructure.

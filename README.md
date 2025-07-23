@@ -138,7 +138,7 @@ Registro: POST /api/auth/register
 ```
 
 <figure>
-  <img src="assets/RegisterForm" alt="Register View" />
+  <img src="assets/RegisterForm.png" alt="Register View" />
   <figcaption>Figura 1. Pantalla de Registro de usuario</figcaption>
 </figure>
 
@@ -151,7 +151,7 @@ Recibirás { message, data: { token, user, expires_at } }.
 El token se guarda en localStorage.
 
 <figure>
-  <img src="assets/LoginForm" alt="Login View" />
+  <img src="assets/LoginForm.png" alt="Login View" />
   <figcaption>Figura 2. Pantalla de Autenticación del usuario</figcaption>
 </figure>
 

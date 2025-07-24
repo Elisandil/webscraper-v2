@@ -8,9 +8,9 @@ module.exports = {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite alternate",
       },
       keyframes: {
-        gradient: { /* tu definición */ },
-        float: { /* tu definición */ },
-        "pulse-glow": { /* tu definición */ },
+        gradient: {},
+        float: {},
+        "pulse-glow": {},
       },
     },
   },

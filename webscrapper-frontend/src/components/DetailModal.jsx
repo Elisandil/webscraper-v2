@@ -1,5 +1,4 @@
-// src/components/DetailModal.jsx
-import React from 'react';
+import React from "react";
 
 export default function DetailModal({ result, onClose }) {
   if (!result) return null;
@@ -17,20 +16,24 @@ export default function DetailModal({ result, onClose }) {
     author,
     language,
     site_name,
-    headers = [],
-    links = [],
-    images = [],
-    content = '',
+    headers,
+    links,
+    images,
+    content,
   } = result;
+  const safeHeaders = headers ?? [];
+  const safeLinks = links ?? [];
+  const safeImages = images ?? [];
+  const safeContent = content ?? "";
 
   const date = new Date(created_at).toLocaleString();
-  const statusColor = status_code === 200 ? 'text-green-400' : 'text-red-400';
+  const statusColor = status_code === 200 ? "text-green-400" : "text-red-400";
 
   return (
     <div
       id="detailModal"
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={e => e.target.id === 'detailModal' && onClose()}
+      onClick={(e) => e.target.id === "detailModal" && onClose()}
     >
       <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative p-6">
         <button
@@ -38,16 +41,30 @@ export default function DetailModal({ result, onClose }) {
           className="absolute top-4 right-4 text-gray-400 hover:text-white"
           aria-label="Cerrar"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
-        <h3 className="text-2xl font-bold text-white mb-4">Detalles del Scraping</h3>
+        <h3 className="text-2xl font-bold text-white mb-4">
+          Detalles del Scraping
+        </h3>
 
         {/* Información Básica */}
         <div className="bg-white/5 rounded-lg p-4 mb-6">
-          <h4 className="text-lg font-semibold text-white mb-3">Información Básica</h4>
+          <h4 className="text-lg font-semibold text-white mb-3">
+            Información Básica
+          </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
             <div>
               <span className="text-gray-400">URL:</span>
@@ -59,7 +76,7 @@ export default function DetailModal({ result, onClose }) {
             </div>
             <div>
               <span className="text-gray-400">Tipo de contenido:</span>
-              <p className="text-white">{content_type || 'Desconocido'}</p>
+              <p className="text-white">{content_type || "Desconocido"}</p>
             </div>
             <div>
               <span className="text-gray-400">Tiempo de carga:</span>
@@ -82,41 +99,41 @@ export default function DetailModal({ result, onClose }) {
           <div className="space-y-2 text-sm text-gray-300">
             <div>
               <span className="text-gray-400">Título:</span>
-              <p className="text-white">{title || 'Sin título'}</p>
+              <p className="text-white">{title || "Sin título"}</p>
             </div>
             <div>
               <span className="text-gray-400">Descripción:</span>
-              <p className="text-white">{description || 'Sin descripción'}</p>
+              <p className="text-white">{description || "Sin descripción"}</p>
             </div>
             <div>
               <span className="text-gray-400">Palabras clave:</span>
-              <p className="text-white">{keywords || 'Sin palabras clave'}</p>
+              <p className="text-white">{keywords || "Sin palabras clave"}</p>
             </div>
             <div>
               <span className="text-gray-400">Autor:</span>
-              <p className="text-white">{author || 'Desconocido'}</p>
+              <p className="text-white">{author || "Desconocido"}</p>
             </div>
             <div>
               <span className="text-gray-400">Idioma:</span>
-              <p className="text-white">{language || 'Desconocido'}</p>
+              <p className="text-white">{language || "Desconocido"}</p>
             </div>
             <div>
               <span className="text-gray-400">Nombre del sitio:</span>
-              <p className="text-white">{site_name || 'Desconocido'}</p>
+              <p className="text-white">{site_name || "Desconocido"}</p>
             </div>
           </div>
         </div>
 
         {/* Cabeceras */}
-        {headers.length > 0 && (
+        {safeHeaders.length > 0 && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
             <h4 className="text-lg font-semibold text-white mb-3">
-              Cabeceras ({headers.length})
+              Cabeceras ({safeHeaders.length})
             </h4>
             <div className="max-h-40 overflow-y-auto text-sm space-y-2">
-              {headers.map((h, i) => (
+              {safeHeaders.map((h, i) => (
                 <div key={i}>
-                  <span className="text-purple-400 font-mono">H{h.level}:</span>{' '}
+                  <span className="text-purple-400 font-mono">H{h.level}:</span>{" "}
                   <span className="text-white">{h.text}</span>
                 </div>
               ))}
@@ -125,13 +142,13 @@ export default function DetailModal({ result, onClose }) {
         )}
 
         {/* Links */}
-        {links.length > 0 && (
+        {safeLinks.length > 0 && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
             <h4 className="text-lg font-semibold text-white mb-3">
-              Links ({links.length})
+              Links ({safeLinks.length})
             </h4>
             <div className="max-h-40 overflow-y-auto text-sm space-y-2">
-              {links.map((link, i) => (
+              {safeLinks.map((link, i) => (
                 <div key={i}>
                   <a
                     href={link}
@@ -148,13 +165,13 @@ export default function DetailModal({ result, onClose }) {
         )}
 
         {/* Imágenes */}
-        {images.length > 0 && (
+        {safeImages.length > 0 && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
             <h4 className="text-lg font-semibold text-white mb-3">
-              Imágenes ({images.length})
+              Imágenes ({safeImages.length})
             </h4>
             <div className="max-h-40 overflow-y-auto text-sm space-y-2">
-              {images.map((img, i) => (
+              {safeImages.map((img, i) => (
                 <div key={i}>
                   <a
                     href={img}
@@ -171,13 +188,15 @@ export default function DetailModal({ result, onClose }) {
         )}
 
         {/* Vista previa de contenido */}
-        {content && (
+        {safeContent && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
-            <h4 className="text-lg font-semibold text-white mb-3">Vista previa del contenido</h4>
+            <h4 className="text-lg font-semibold text-white mb-3">
+              Vista previa del contenido
+            </h4>
             <pre className="whitespace-pre-wrap break-words text-sm text-gray-300 max-h-60 overflow-y-auto">
-              {content.length > 2000
-                ? `${content.substring(0, 2000)}...\n\n[Content truncated]`
-                : content}
+              {safeContent.length > 2000
+                ? `${safeContent.substring(0, 2000)}...\n\n[Content truncated]`
+                : safeContent}
             </pre>
           </div>
         )}

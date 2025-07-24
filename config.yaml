@@ -21,6 +21,6 @@ features:
 
 auth:
   require_auth: true  # true para requerir auth en todos los endpoints
-  jwt_secret: "tu_secreto_seguro"
+  jwt_secret: "your_jwt_secret_key"
   token_duration_hours: 24
   default_role: "user"  

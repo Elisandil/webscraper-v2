@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
-import { apiRequest } from '../api/client';
+import React, { useState } from "react";
+import { apiRequest } from "../api/client";
 
 export default function ScrapeForm({ onSuccess, onError }) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
     if (!/^https?:\/\//.test(url)) {
-      return onError('Por favor, ingresa una URL válida con http:// o https://');
+      return onError(
+        "Por favor, ingresa una URL válida con http:// o https://"
+      );
     }
     setLoading(true);
-    const { ok, data } = await apiRequest('/scrape', {
-      method: 'POST',
+    const { ok, data } = await apiRequest("/scrape", {
+      method: "POST",
       body: JSON.stringify({ url }),
     });
     setLoading(false);
     if (ok) {
       onSuccess(`Se ha scrapeado el sitio web con éxito: ${url}`);
-      setUrl('');
+      setUrl("");
     } else {
-      onError(data.error || 'Fallo al scrapear la URL');
+      onError(data.error || "Fallo al scrapear la URL");
     }
   };
 
@@ -35,7 +37,7 @@ export default function ScrapeForm({ onSuccess, onError }) {
               type="url"
               placeholder="https://example.com"
               value={url}
-              onChange={e => setUrl(e.target.value)}
+              onChange={(e) => setUrl(e.target.value)}
               className="w-full px-6 py-4 bg-gray-700/50 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-300"
             />
           </div>
@@ -44,7 +46,7 @@ export default function ScrapeForm({ onSuccess, onError }) {
             disabled={loading}
             className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold text-gray-100 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
           >
-            {loading ? 'Scraping...' : 'Scrapear sitio web'}
+            {loading ? "Scraping..." : "Scrapear sitio web"}
           </button>
         </div>
       </div>

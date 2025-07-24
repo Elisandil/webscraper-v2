@@ -92,15 +92,15 @@ func loadConfig() (*config.Config, error) {
 
 func initializeDatabase(cfg *config.Config) (*database.SQLiteDB, error) {
 	dataDir := filepath.Dir(cfg.Database.Path)
+
 	if err := os.MkdirAll(dataDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create data directory '%s': %w", dataDir, err)
 	}
-
 	db, err := database.NewSQLiteDB(cfg.Database.Path)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize SQLite database: %w", err)
 	}
-
 	log.Printf("Database initialized successfully at: %s", cfg.Database.Path)
 	return db, nil
 }

@@ -104,8 +104,7 @@ func (db *SQLiteDB) createTables() error {
 	);
 	CREATE INDEX IF NOT EXISTS idx_schedules_user_id ON schedules(user_id);
 	CREATE INDEX IF NOT EXISTS idx_schedules_active ON schedules(active);
-	CREATE INDEX IF NOT EXISTS idx_schedules_next_run ON schedules(next_run);
-	)`
+	CREATE INDEX IF NOT EXISTS idx_schedules_next_run ON schedules(next_run);`
 
 	if _, err := db.Exec(schedulesQuery); err != nil {
 		return err

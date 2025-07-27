@@ -25,7 +25,7 @@ func (r *scrapingRepository) Save(result *entity.ScrapingResult) error {
 		content_type, word_count, load_time_ms, created_at
 	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	linksJSON, err := json.Marshal(result.Links)
-	
+
 	if err != nil {
 		return fmt.Errorf("error marshaling links: %w", err)
 	}
@@ -49,7 +49,7 @@ func (r *scrapingRepository) Save(result *entity.ScrapingResult) error {
 		return fmt.Errorf("error executing insert: %w", err)
 	}
 	id, err := res.LastInsertId()
-	
+
 	if err != nil {
 		return fmt.Errorf("error getting last insert id: %w", err)
 	}
@@ -66,7 +66,7 @@ func (r *scrapingRepository) FindAll() ([]*entity.ScrapingResult, error) {
 	ORDER BY created_at DESC`
 
 	rows, err := r.db.Query(query)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error querying results: %w", err)
 	}
@@ -95,7 +95,7 @@ func (r *scrapingRepository) FindAll() ([]*entity.ScrapingResult, error) {
 			result.Headers = []entity.Header{}
 		}
 		result.CreatedAt, err = r.parseDateTime(createdAt)
-		
+
 		if err != nil {
 			return nil, fmt.Errorf("error parsing created_at: %w", err)
 		}
@@ -120,7 +120,7 @@ func (r *scrapingRepository) FindAllByUserID(userID int64) ([]*entity.ScrapingRe
     `
 
 	rows, err := r.db.Query(query, userID)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error querying results: %w", err)
 	}
@@ -135,7 +135,7 @@ func (r *scrapingRepository) FindAllByUserID(userID int64) ([]*entity.ScrapingRe
 			&result.SiteName, &linksJSON, &imagesJSON, &headersJSON, &result.StatusCode,
 			&result.ContentType, &result.WordCount, &result.LoadTime, &createdAt,
 		)
-		
+
 		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
@@ -149,7 +149,7 @@ func (r *scrapingRepository) FindAllByUserID(userID int64) ([]*entity.ScrapingRe
 			result.Headers = []entity.Header{}
 		}
 		result.CreatedAt, err = r.parseDateTime(createdAt)
-		
+
 		if err != nil {
 			return nil, fmt.Errorf("error parsing created_at: %w", err)
 		}
@@ -178,9 +178,9 @@ func (r *scrapingRepository) FindByID(id int64) (*entity.ScrapingResult, error) 
 		&result.ImageURL, &result.SiteName, &linksJSON, &imagesJSON,
 		&headersJSON, &result.StatusCode, &result.ContentType,
 		&result.WordCount, &result.LoadTime, &createdAt)
-	
+
 	if err != nil {
-		
+
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -206,7 +206,7 @@ func (r *scrapingRepository) FindByID(id int64) (*entity.ScrapingResult, error) 
 func (r *scrapingRepository) Delete(id int64) error {
 	query := `DELETE FROM scraping_results WHERE id = ?`
 	_, err := r.db.Exec(query, id)
-	
+
 	if err != nil {
 		return fmt.Errorf("error deleting result: %w", err)
 	}
@@ -214,7 +214,7 @@ func (r *scrapingRepository) Delete(id int64) error {
 }
 
 func (r *scrapingRepository) unmarshalJSONField(jsonStr string, target interface{}) error {
-	
+
 	if jsonStr == "" {
 		return fmt.Errorf("empty json string")
 	}
@@ -230,7 +230,7 @@ func (r *scrapingRepository) parseDateTime(dateStr string) (time.Time, error) {
 		time.DateTime,
 	}
 	for _, format := range formats {
-		
+
 		if t, err := time.Parse(format, dateStr); err == nil {
 			return t, nil
 		}

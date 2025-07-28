@@ -66,6 +66,7 @@ func (m *JWTMiddleware) RequireRole(roles ...string) func(http.Handler) http.Han
 			hasRole := false
 
 			for _, requiredRole := range roles {
+
 				if user.Role == requiredRole {
 					hasRole = true
 					break

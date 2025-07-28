@@ -21,7 +21,7 @@ type Server struct {
 	config      *config.Config
 	usecase     *usecase.ScrapingUseCase
 	authUseCase *usecase.AuthUseCase
-	scheduleUC  *usecase.ScheduleUseCase // Nuevo campo
+	scheduleUC  *usecase.ScheduleUseCase
 	router      *mux.Router
 	jwtMw       *JWTMiddleware
 }
@@ -43,7 +43,7 @@ func NewServer(port string, cfg *config.Config, uc *usecase.ScrapingUseCase, aut
 		config:      cfg,
 		usecase:     uc,
 		authUseCase: authUC,
-		scheduleUC:  scheduleUC, // Nuevo
+		scheduleUC:  scheduleUC,
 		router:      mux.NewRouter(),
 		jwtMw:       NewJWTMiddleware(authUC),
 	}
@@ -67,10 +67,8 @@ func (s *Server) setupRoutes() {
 
 	// Rutas públicas o con autenticación opcional
 	if s.config.Auth.RequireAuth {
-		// Si RequireAuth está habilitado, todas las rutas requieren autenticación
 		api.Use(s.jwtMw.RequireAuth)
 	} else {
-		// Si no, usar autenticación opcional
 		api.Use(s.jwtMw.OptionalAuth)
 	}
 	api.HandleFunc("/scrape", s.scrapeHandler).Methods("POST")
@@ -190,6 +188,7 @@ func (s *Server) refreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Token string `json:"token"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.sendErrorResponse(w, "Invalid JSON format", http.StatusBadRequest, err.Error())
 		return
@@ -215,7 +214,6 @@ func (s *Server) profileHandler(w http.ResponseWriter, r *http.Request) {
 		s.sendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-
 	s.sendSuccessResponse(w, "Profile retrieved successfully", user)
 }
 
@@ -223,6 +221,7 @@ func (s *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./interface/templates/index.html")
 }
 
+// Handlers de scraping
 func (s *Server) scrapeHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
 	if user == nil {
@@ -344,20 +343,20 @@ func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Sprintf("The requested endpoint %s %s does not exist", r.Method, r.URL.Path))
 }
 
+// Handlers de programación de scraping
 func (s *Server) createScheduleHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
+
 	if user == nil {
 		s.sendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-
 	var req entity.CreateScheduleRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.sendErrorResponse(w, "Invalid JSON format", http.StatusBadRequest, err.Error())
 		return
 	}
-
-	// Validaciones básicas
 	if strings.TrimSpace(req.Name) == "" {
 		s.sendErrorResponse(w, "Name is required", http.StatusBadRequest, "")
 		return
@@ -370,61 +369,59 @@ func (s *Server) createScheduleHandler(w http.ResponseWriter, r *http.Request) {
 		s.sendErrorResponse(w, "Cron expression is required", http.StatusBadRequest, "")
 		return
 	}
-
 	schedule, err := s.scheduleUC.CreateSchedule(&req, user.ID)
+
 	if err != nil {
 		log.Printf("Error creating schedule: %v", err)
 		s.sendErrorResponse(w, "Failed to create schedule", http.StatusBadRequest, err.Error())
 		return
 	}
-
 	log.Printf("Schedule created: %s (ID: %d) by user %s", schedule.Name, schedule.ID, user.Username)
 	s.sendSuccessResponse(w, "Schedule created successfully", schedule)
 }
 
 func (s *Server) getSchedulesHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
+
 	if user == nil {
 		s.sendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-
 	schedules, err := s.scheduleUC.GetSchedulesByUser(user.ID)
+
 	if err != nil {
 		log.Printf("Error getting schedules: %v", err)
 		s.sendErrorResponse(w, "Failed to retrieve schedules", http.StatusInternalServerError, err.Error())
 		return
 	}
-
 	log.Printf("Retrieved %d schedules for user %s", len(schedules), user.Username)
 	s.sendSuccessResponse(w, fmt.Sprintf("Retrieved %d schedules", len(schedules)), schedules)
 }
 
 func (s *Server) getScheduleHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
+
 	if user == nil {
 		s.sendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-
 	id, err := s.parseID(r)
+
 	if err != nil {
 		s.sendErrorResponse(w, "Invalid ID format", http.StatusBadRequest, "ID must be a valid number")
 		return
 	}
-
 	schedule, err := s.scheduleUC.GetSchedule(id)
+
 	if err != nil {
 		log.Printf("Error getting schedule %d: %v", id, err)
 		s.sendErrorResponse(w, "Failed to retrieve schedule", http.StatusInternalServerError, err.Error())
 		return
 	}
-
 	if schedule == nil {
 		s.sendErrorResponse(w, "Schedule not found", http.StatusNotFound, fmt.Sprintf("No schedule found with ID %d", id))
 		return
 	}
-
 	if schedule.UserID != user.ID {
 		s.sendErrorResponse(w, "Schedule not found", http.StatusNotFound, fmt.Sprintf("No schedule found with ID %d", id))
 		return
@@ -435,26 +432,28 @@ func (s *Server) getScheduleHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) updateScheduleHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
+
 	if user == nil {
 		s.sendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-
 	id, err := s.parseID(r)
+
 	if err != nil {
 		s.sendErrorResponse(w, "Invalid ID format", http.StatusBadRequest, "ID must be a valid number")
 		return
 	}
-
 	var req entity.UpdateScheduleRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.sendErrorResponse(w, "Invalid JSON format", http.StatusBadRequest, err.Error())
 		return
 	}
-
 	schedule, err := s.scheduleUC.UpdateSchedule(id, &req, user.ID)
+
 	if err != nil {
 		log.Printf("Error updating schedule %d: %v", id, err)
+
 		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "unauthorized") {
 			s.sendErrorResponse(w, "Schedule not found", http.StatusNotFound, "")
 		} else {
@@ -462,27 +461,28 @@ func (s *Server) updateScheduleHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
 	log.Printf("Updated schedule ID: %d (%s)", id, schedule.Name)
 	s.sendSuccessResponse(w, "Schedule updated successfully", schedule)
 }
 
 func (s *Server) deleteScheduleHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r.Context())
+
 	if user == nil {
 		s.sendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-
 	id, err := s.parseID(r)
+
 	if err != nil {
 		s.sendErrorResponse(w, "Invalid ID format", http.StatusBadRequest, "ID must be a valid number")
 		return
 	}
-
 	err = s.scheduleUC.DeleteSchedule(id, user.ID)
+
 	if err != nil {
 		log.Printf("Error deleting schedule %d: %v", id, err)
+
 		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "unauthorized") {
 			s.sendErrorResponse(w, "Schedule not found", http.StatusNotFound, "")
 		} else {
@@ -490,7 +490,6 @@ func (s *Server) deleteScheduleHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
 	log.Printf("Deleted schedule ID: %d by user %s", id, user.Username)
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -533,6 +532,7 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 
 func (s *Server) contentTypeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		if strings.HasPrefix(r.URL.Path, "/api/") {
 			w.Header().Set("Content-Type", "application/json")
 		}

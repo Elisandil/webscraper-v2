@@ -41,7 +41,7 @@ func NewScheduleUseCase(scheduleRepo repository.ScheduleRepository, scrapingUC *
 }
 
 func (uc *ScheduleUseCase) CreateSchedule(req *entity.CreateScheduleRequest, userID int64) (*entity.Schedule, error) {
-	// Validar expresión cron
+
 	if err := uc.validateCronExpression(req.CronExpr); err != nil {
 		return nil, fmt.Errorf("invalid cron expression: %w", err)
 	}
@@ -66,6 +66,7 @@ func (uc *ScheduleUseCase) CreateSchedule(req *entity.CreateScheduleRequest, use
 
 	// IMPORTANTE: Registrar el job en el cron si el scheduler está iniciado
 	if uc.isStarted && schedule.Active {
+
 		if err := uc.addJobToCron(schedule); err != nil {
 			log.Printf("Warning: Could not add job to cron for schedule %d: %v", schedule.ID, err)
 		}
@@ -138,6 +139,7 @@ func (uc *ScheduleUseCase) UpdateSchedule(id int64, req *entity.UpdateScheduleRe
 
 func (uc *ScheduleUseCase) DeleteSchedule(id int64, userID int64) error {
 	schedule, err := uc.scheduleRepo.FindByID(id)
+
 	if err != nil {
 		return fmt.Errorf("error finding schedule: %w", err)
 	}
@@ -147,15 +149,11 @@ func (uc *ScheduleUseCase) DeleteSchedule(id int64, userID int64) error {
 	if schedule.UserID != userID {
 		return fmt.Errorf("unauthorized access to schedule")
 	}
-
-	// Remover job del cron
 	uc.removeJobFromCron(id)
 
-	// Eliminar de la base de datos
 	if err := uc.scheduleRepo.Delete(id); err != nil {
 		return fmt.Errorf("error deleting schedule: %w", err)
 	}
-
 	log.Printf("✅ Schedule deleted: %s (ID: %d)", schedule.Name, schedule.ID)
 	return nil
 }
@@ -169,18 +167,15 @@ func (uc *ScheduleUseCase) StartScheduler() {
 		log.Println("⚠️  Scheduler is already started")
 		return
 	}
-
 	log.Println("🚀 Starting scheduler...")
 
 	// Cargar todos los schedules activos y registrarlos en el cron
 	if err := uc.loadActiveSchedules(); err != nil {
 		log.Printf("❌ Error loading active schedules: %v", err)
 	}
-
 	// Iniciar el cron
 	uc.cron.Start()
 	uc.isStarted = true
-
 	log.Printf("✅ Scheduler started successfully with %d active jobs", len(uc.activeJobs))
 }
 
@@ -192,7 +187,6 @@ func (uc *ScheduleUseCase) StopScheduler() {
 		log.Println("⚠️  Scheduler is not running")
 		return
 	}
-
 	log.Println("🛑 Stopping scheduler...")
 	uc.cron.Stop()
 	uc.activeJobs = make(map[int64]cron.EntryID) // Limpiar jobs activos
@@ -202,14 +196,15 @@ func (uc *ScheduleUseCase) StopScheduler() {
 
 func (uc *ScheduleUseCase) loadActiveSchedules() error {
 	schedules, err := uc.scheduleRepo.FindActiveSchedules()
+
 	if err != nil {
 		return fmt.Errorf("error loading active schedules: %w", err)
 	}
-
 	log.Printf("📋 Loading %d active schedules...", len(schedules))
-
 	successCount := 0
+
 	for _, schedule := range schedules {
+
 		if err := uc.addJobToCron(schedule); err != nil {
 			log.Printf("❌ Failed to add schedule %d to cron: %v", schedule.ID, err)
 		} else {
@@ -218,7 +213,6 @@ func (uc *ScheduleUseCase) loadActiveSchedules() error {
 				schedule.Name, schedule.ID, schedule.CronExpr)
 		}
 	}
-
 	log.Printf("📊 Successfully loaded %d/%d schedules", successCount, len(schedules))
 	return nil
 }
@@ -227,26 +221,21 @@ func (uc *ScheduleUseCase) addJobToCron(schedule *entity.Schedule) error {
 	uc.mu.Lock()
 	defer uc.mu.Unlock()
 
-	// Verificar si ya existe un job para este schedule
 	if _, exists := uc.activeJobs[schedule.ID]; exists {
 		log.Printf("⚠️  Job already exists for schedule %d, skipping", schedule.ID)
 		return nil
 	}
-
-	// Crear función que se ejecutará
 	jobFunc := func() {
 		uc.executeSchedule(schedule)
 	}
-
 	// Agregar job al cron
 	entryID, err := uc.cron.AddFunc(schedule.CronExpr, jobFunc)
+
 	if err != nil {
 		return fmt.Errorf("error adding job to cron: %w", err)
 	}
-
 	// Guardar referencia del job
 	uc.activeJobs[schedule.ID] = entryID
-
 	log.Printf("🕒 Job registered for schedule %d with cron expression: %s", schedule.ID, schedule.CronExpr)
 	return nil
 }
@@ -267,28 +256,27 @@ func (uc *ScheduleUseCase) executeSchedule(schedule *entity.Schedule) {
 		schedule.Name, schedule.ID, schedule.URL)
 
 	now := time.Now()
-
 	// Ejecutar scraping
 	_, err := uc.scrapingUC.ScrapeURL(schedule.URL, schedule.UserID)
+
 	if err != nil {
 		log.Printf("❌ Error executing scheduled scraping %d: %v", schedule.ID, err)
 	} else {
 		log.Printf("✅ Scheduled scraping completed successfully: %s", schedule.Name)
 	}
-
 	// Actualizar última ejecución y contador
 	newRunCount := schedule.RunCount + 1
+
 	if err := uc.scheduleRepo.UpdateLastRun(schedule.ID, now, newRunCount); err != nil {
 		log.Printf("❌ Error updating last run for schedule %d: %v", schedule.ID, err)
 	}
-
 	// Calcular y actualizar próxima ejecución
 	nextRun, err := uc.calculateNextRun(schedule.CronExpr)
+
 	if err != nil {
 		log.Printf("❌ Error calculating next run for schedule %d: %v", schedule.ID, err)
 		return
 	}
-
 	if err := uc.scheduleRepo.UpdateNextRun(schedule.ID, nextRun); err != nil {
 		log.Printf("❌ Error updating next run for schedule %d: %v", schedule.ID, err)
 	} else {
@@ -303,13 +291,13 @@ func (uc *ScheduleUseCase) validateCronExpression(cronExpr string) error {
 
 func (uc *ScheduleUseCase) calculateNextRun(cronExpr string) (time.Time, error) {
 	schedule, err := uc.cronParser.Parse(cronExpr)
+
 	if err != nil {
 		return time.Time{}, err
 	}
 	return schedule.Next(time.Now()), nil
 }
 
-// Método para obtener información del estado del scheduler
 func (uc *ScheduleUseCase) GetSchedulerStatus() map[string]interface{} {
 	uc.mu.RLock()
 	defer uc.mu.RUnlock()

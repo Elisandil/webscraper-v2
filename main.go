@@ -1,3 +1,5 @@
+// Actualización del main.go para integrar el scheduler
+
 package main
 
 import (
@@ -10,8 +12,8 @@ import (
 	"webscraper-v2/internal/config"
 	"webscraper-v2/internal/infrastructure/database"
 	repository "webscraper-v2/internal/infrastructure/persistence"
-	"webscraper-v2/internal/infrastructure/web"
 	"webscraper-v2/internal/usecase"
+	"webscraper-v2/internal/web"
 )
 
 const (
@@ -22,15 +24,15 @@ const (
 
 func main() {
 	log.Printf("Starting %s v%s", appName, version)
+
 	// Cargar configuración
 	cfg, err := loadConfig()
-
 	if err != nil {
 		log.Fatal("Failed to load configuration:", err)
 	}
+
 	// Inicializar base de datos
 	db, err := initializeDatabase(cfg)
-
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}
@@ -39,16 +41,19 @@ func main() {
 			log.Printf("Error closing database: %v", err)
 		}
 	}()
+
 	// Inicializar repositorios
 	scrapingRepo := repository.NewScrapingRepository(db)
 	userRepo := repository.NewUserRepository(db)
+	scheduleRepo := repository.NewScheduleRepository(db)
 
 	// Inicializar casos de uso
 	scrapingUC := usecase.NewScrapingUseCase(scrapingRepo, cfg)
 	authUC := usecase.NewAuthUseCase(userRepo, cfg)
+	scheduleUC := usecase.NewScheduleUseCase(scheduleRepo, scrapingUC, cfg)
 
 	// Inicializar servidor web
-	server := web.NewServer(cfg.Server.Port, cfg, scrapingUC, authUC)
+	server := web.NewServer(cfg.Server.Port, cfg, scrapingUC, authUC, scheduleUC)
 
 	// Configurar manejo de señales para shutdown graceful
 	sigChan := make(chan os.Signal, 1)
@@ -62,12 +67,17 @@ func main() {
 			log.Fatal("Failed to start server:", err)
 		}
 	}()
+
 	sig := <-sigChan
 	log.Printf("Received signal: %v. Shutting down gracefully...", sig)
+
+	// Detener scheduler antes de cerrar
+	scheduleUC.StopScheduler()
 
 	log.Printf("%s v%s shutdown complete", appName, version)
 }
 
+// Resto de funciones sin cambios...
 func loadConfig() (*config.Config, error) {
 	cfg, err := config.Load(configFile)
 	if err != nil {

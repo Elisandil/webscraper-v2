@@ -131,7 +131,7 @@ func (uc *AuthUseCase) GetUserByID(id int64) (*entity.User, error) {
 		return nil, fmt.Errorf("error finding user: %w", err)
 	}
 	if user != nil {
-		user.Password = "" // Limpiar password
+		user.Password = ""
 	}
 	return user, nil
 }

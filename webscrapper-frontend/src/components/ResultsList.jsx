@@ -32,9 +32,9 @@ export default function ResultsList({ results, onView, onDelete }) {
   };
 
   return (
-    <div className="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-      <div className="px-6 py-4 border-b border-white/10">
-        <h2 className="text-xl font-bold text-white">Resultados de Scraping</h2>
+    <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+      <div className="px-6 py-4 border-b border-white/20">
+        <h2 className="text-2xl font-bold text-white">Resultados de Scraping</h2>
         <p className="text-gray-400 text-sm mt-1">
           {results.length} resultado{results.length !== 1 ? "s" : ""} encontrado{results.length !== 1 ? "s" : ""}
         </p>
@@ -65,7 +65,7 @@ export default function ResultsList({ results, onView, onDelete }) {
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-white/10">
+        <div className="divide-y divide-white/20">
           {results.map((result) => (
             <div
               key={result.id}

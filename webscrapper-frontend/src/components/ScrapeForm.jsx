@@ -43,9 +43,9 @@ export default function ScrapeForm({ onSuccess, onError }) {
 
   return (
     <div className="mb-8">
-      <div className="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold text-white mb-2">Scraping Manual</h2>
+      <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white mb-2">Scraping Manual</h2>
           <p className="text-gray-400 text-sm">
             Ingresa una URL para extraer información inmediatamente
           </p>
@@ -68,7 +68,7 @@ export default function ScrapeForm({ onSuccess, onError }) {
             <button
               type="submit"
               disabled={isLoading || !url.trim()}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-8 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-xl"
+              className="px-8 py-3 bg-blue-600/90 hover:bg-blue-600 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg backdrop-blur-sm border border-blue-500/20"
             >
               {isLoading ? (
                 <>
@@ -106,14 +106,14 @@ export default function ScrapeForm({ onSuccess, onError }) {
                   <button
                     type="button"
                     onClick={handleCreateSchedule}
-                    className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+                    className="px-4 py-2 bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg backdrop-blur-sm border border-blue-500/20"
                   >
                     Crear Schedule
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowScheduleOption(false)}
-                    className="text-gray-400 hover:text-white p-1"
+                    className="text-gray-400 hover:text-white p-1 transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -125,7 +125,7 @@ export default function ScrapeForm({ onSuccess, onError }) {
           )}
         </form>
 
-        <div className="mt-4 flex items-center gap-4 text-sm text-gray-400">
+        <div className="mt-6 flex items-center gap-6 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

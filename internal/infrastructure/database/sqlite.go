@@ -55,6 +55,9 @@ func (db *SQLiteDB) createTables() error {
 	CREATE INDEX IF NOT EXISTS idx_scraping_results_created_at ON scraping_results(created_at);
 	CREATE INDEX IF NOT EXISTS idx_scraping_results_status_code ON scraping_results(status_code);`
 
+	if _, err := db.Exec(scrapingQuery); err != nil {
+		return err
+	}
 	usersQuery := `
 	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,7 +73,10 @@ func (db *SQLiteDB) createTables() error {
 	CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 	CREATE INDEX IF NOT EXISTS idx_users_active ON users(active);`
 
-	triggerQuery := `
+	if _, err := db.Exec(usersQuery); err != nil {
+		return err
+	}
+	usersTriggerQuery := `
 	CREATE TRIGGER IF NOT EXISTS users_updated_at
 	AFTER UPDATE ON users
 	FOR EACH ROW
@@ -78,13 +84,40 @@ func (db *SQLiteDB) createTables() error {
 		UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 	END;`
 
-	if _, err := db.Exec(scrapingQuery); err != nil {
+	if _, err := db.Exec(usersTriggerQuery); err != nil {
 		return err
 	}
-	if _, err := db.Exec(usersQuery); err != nil {
+	schedulesQuery := `
+	CREATE TABLE IF NOT EXISTS schedules (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id INTEGER NOT NULL,
+		name TEXT NOT NULL,
+		url TEXT NOT NULL,
+		cron_expression TEXT NOT NULL,
+		active BOOLEAN NOT NULL DEFAULT true,
+		last_run DATETIME,
+		next_run DATETIME,
+		run_count INTEGER NOT NULL DEFAULT 0,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users(id)
+	);
+	CREATE INDEX IF NOT EXISTS idx_schedules_user_id ON schedules(user_id);
+	CREATE INDEX IF NOT EXISTS idx_schedules_active ON schedules(active);
+	CREATE INDEX IF NOT EXISTS idx_schedules_next_run ON schedules(next_run);`
+
+	if _, err := db.Exec(schedulesQuery); err != nil {
 		return err
 	}
-	if _, err := db.Exec(triggerQuery); err != nil {
+	schedulesTriggerQuery := `
+	CREATE TRIGGER IF NOT EXISTS schedules_updated_at
+	AFTER UPDATE ON schedules
+	FOR EACH ROW
+	BEGIN
+		UPDATE schedules SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+	END;`
+
+	if _, err := db.Exec(schedulesTriggerQuery); err != nil {
 		return err
 	}
 	return nil

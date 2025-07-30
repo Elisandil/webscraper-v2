@@ -3,51 +3,141 @@ import { apiRequest } from "../api/client";
 
 export default function ScrapeForm({ onSuccess, onError }) {
   const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showScheduleOption, setShowScheduleOption] = useState(false);
 
-  const submit = async () => {
-    if (!/^https?:\/\//.test(url)) {
-      return onError(
-        "Por favor, ingresa una URL válida con http:// o https://"
-      );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!url.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const { ok, data } = await apiRequest("/scrape", {
+        method: "POST",
+        body: JSON.stringify({ url: url.trim() }),
+      });
+
+      if (ok) {
+        onSuccess("URL scrapeada exitosamente");
+        setUrl("");
+        setShowScheduleOption(true);
+        setTimeout(() => setShowScheduleOption(false), 5000);
+      } else {
+        onError(data.error || "Error al scrapear la URL");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      onError("Error de conexión");
+    } finally {
+      setIsLoading(false);
     }
-    setLoading(true);
-    const { ok, data } = await apiRequest("/scrape", {
-      method: "POST",
-      body: JSON.stringify({ url }),
+  };
+
+  const handleCreateSchedule = () => {
+    const event = new CustomEvent('openScheduleModal', {
+      detail: { url: url.trim() }
     });
-    setLoading(false);
-    if (ok) {
-      onSuccess(`Se ha scrapeado el sitio web con éxito: ${url}`);
-      setUrl("");
-    } else {
-      onError(data.error || "Fallo al scrapear la URL");
-    }
+    window.dispatchEvent(event);
+    setShowScheduleOption(false);
   };
 
   return (
     <div className="mb-8">
-      <div className="bg-gray-800/50 backdrop-blur-lg rounded-lg shadow-lg border border-gray-700/50 p-8">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-100">
-          Extraer contenido web
-        </h2>
-        <div className="space-y-6">
-          <div className="relative">
-            <input
-              type="url"
-              placeholder="https://example.com"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="w-full px-6 py-4 bg-gray-700/50 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-300"
-            />
+      <div className="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-white mb-2">Scraping Manual</h2>
+          <p className="text-gray-400 text-sm">
+            Ingresa una URL para extraer información inmediatamente
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://ejemplo.com"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            
+            <button
+              type="submit"
+              disabled={isLoading || !url.trim()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-8 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-xl"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Scrapeando...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Scrap
+                </>
+              )}
+            </button>
           </div>
-          <button
-            onClick={submit}
-            disabled={loading}
-            className="w-full py-4 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold text-gray-100 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
-          >
-            {loading ? "Scraping..." : "Scrapear sitio web"}
-          </button>
+
+          {/* Opción para crear schedule después de un scraping exitoso */}
+          {showScheduleOption && (
+            <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg p-4 animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">¿Quieres automatizar este scraping?</p>
+                    <p className="text-gray-400 text-sm">Crea un schedule para scrapear esta URL automáticamente</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCreateSchedule}
+                    className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    Crear Schedule
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowScheduleOption(false)}
+                    className="text-gray-400 hover:text-white p-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </form>
+
+        <div className="mt-4 flex items-center gap-4 text-sm text-gray-400">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Soporta HTTP y HTTPS</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Extrae metadata, links e imágenes</span>
+          </div>
         </div>
       </div>
     </div>

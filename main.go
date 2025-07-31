@@ -1,5 +1,3 @@
-// Actualización del main.go para integrar el scheduler
-
 package main
 
 import (
@@ -12,50 +10,52 @@ import (
 	"webscraper-v2/internal/config"
 	"webscraper-v2/internal/infrastructure/database"
 	repository "webscraper-v2/internal/infrastructure/persistence"
+	"webscraper-v2/internal/presentation/server"
 	"webscraper-v2/internal/usecase"
-	"webscraper-v2/internal/web"
 )
 
 const (
 	configFile = "config.yaml"
 	appName    = "WebScraper"
-	version    = "1.0"
+	version    = "2.0"
 )
 
 func main() {
 	log.Printf("Starting %s v%s", appName, version)
 
-	// Cargar configuración
+	// Load configuration
 	cfg, err := loadConfig()
+
 	if err != nil {
 		log.Fatal("Failed to load configuration:", err)
 	}
-
-	// Inicializar base de datos
+	// Initialize database
 	db, err := initializeDatabase(cfg)
+
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}
 	defer func() {
+
 		if err := db.Close(); err != nil {
 			log.Printf("Error closing database: %v", err)
 		}
 	}()
 
-	// Inicializar repositorios
+	// Initialize repositories
 	scrapingRepo := repository.NewScrapingRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	scheduleRepo := repository.NewScheduleRepository(db)
 
-	// Inicializar casos de uso
+	// Initialize use cases
 	scrapingUC := usecase.NewScrapingUseCase(scrapingRepo, cfg)
 	authUC := usecase.NewAuthUseCase(userRepo, cfg)
 	scheduleUC := usecase.NewScheduleUseCase(scheduleRepo, scrapingUC, cfg)
 
-	// Inicializar servidor web
-	server := web.NewServer(cfg.Server.Port, cfg, scrapingUC, authUC, scheduleUC)
+	// Initialize server
+	srv := server.NewServer(cfg.Server.Port, cfg, scrapingUC, authUC, scheduleUC)
 
-	// Configurar manejo de señales para shutdown graceful
+	// Setup graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -63,27 +63,25 @@ func main() {
 		log.Printf("Server starting on port %s", cfg.Server.Port)
 		log.Printf("Server URL: http://localhost:%s", cfg.Server.Port)
 
-		if err := server.Start(); err != nil {
+		if err := srv.Start(); err != nil {
 			log.Fatal("Failed to start server:", err)
 		}
 	}()
-
 	sig := <-sigChan
 	log.Printf("Received signal: %v. Shutting down gracefully...", sig)
 
-	// Detener scheduler antes de cerrar
+	// Stop scheduler before closing
 	scheduleUC.StopScheduler()
 
 	log.Printf("%s v%s shutdown complete", appName, version)
 }
 
-// Resto de funciones sin cambios...
 func loadConfig() (*config.Config, error) {
 	cfg, err := config.Load(configFile)
+
 	if err != nil {
 		return nil, fmt.Errorf("error loading config file '%s': %w", configFile, err)
 	}
-
 	log.Printf("Configuration loaded successfully")
 	log.Printf("- Server port: %s", cfg.Server.Port)
 	log.Printf("- Database path: %s", cfg.Database.Path)

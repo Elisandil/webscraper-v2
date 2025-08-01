@@ -1,4 +1,3 @@
-// internal/usecase/schedule.go
 package usecase
 
 import (
@@ -41,12 +40,12 @@ func NewScheduleUseCase(scheduleRepo repository.ScheduleRepository, scrapingUC *
 }
 
 func (uc *ScheduleUseCase) CreateSchedule(req *entity.CreateScheduleRequest, userID int64) (*entity.Schedule, error) {
-
 	if err := uc.validateCronExpression(req.CronExpr); err != nil {
+
 		return nil, fmt.Errorf("invalid cron expression: %w", err)
 	}
-	nextRun, err := uc.calculateNextRun(req.CronExpr)
 
+	nextRun, err := uc.calculateNextRun(req.CronExpr)
 	if err != nil {
 		return nil, fmt.Errorf("error calculating next run: %w", err)
 	}
@@ -63,14 +62,13 @@ func (uc *ScheduleUseCase) CreateSchedule(req *entity.CreateScheduleRequest, use
 	if err := uc.scheduleRepo.Create(schedule); err != nil {
 		return nil, fmt.Errorf("error creating schedule: %w", err)
 	}
-
-	// IMPORTANTE: Registrar el job en el cron si el scheduler está iniciado
 	if uc.isStarted && schedule.Active {
 
 		if err := uc.addJobToCron(schedule); err != nil {
 			log.Printf("Warning: Could not add job to cron for schedule %d: %v", schedule.ID, err)
 		}
 	}
+
 	log.Printf("✅ Schedule created: %s (ID: %d) - Next run: %v", schedule.Name, schedule.ID, nextRun)
 	return schedule, nil
 }
@@ -85,6 +83,7 @@ func (uc *ScheduleUseCase) GetSchedule(id int64) (*entity.Schedule, error) {
 
 func (uc *ScheduleUseCase) UpdateSchedule(id int64, req *entity.UpdateScheduleRequest, userID int64) (*entity.Schedule, error) {
 	schedule, err := uc.scheduleRepo.FindByID(id)
+
 	if err != nil {
 		return nil, fmt.Errorf("error finding schedule: %w", err)
 	}
@@ -94,10 +93,8 @@ func (uc *ScheduleUseCase) UpdateSchedule(id int64, req *entity.UpdateScheduleRe
 	if schedule.UserID != userID {
 		return nil, fmt.Errorf("unauthorized access to schedule")
 	}
-	// Remover job anterior del cron si existe
 	uc.removeJobFromCron(schedule.ID)
 
-	// Actualizar campos si se proporcionaron
 	if req.Name != nil {
 		schedule.Name = strings.TrimSpace(*req.Name)
 	}
@@ -111,7 +108,6 @@ func (uc *ScheduleUseCase) UpdateSchedule(id int64, req *entity.UpdateScheduleRe
 			return nil, fmt.Errorf("invalid cron expression: %w", err)
 		}
 		schedule.CronExpr = newCronExpr
-		// Recalcular próxima ejecución
 		nextRun, err := uc.calculateNextRun(schedule.CronExpr)
 
 		if err != nil {
@@ -126,7 +122,6 @@ func (uc *ScheduleUseCase) UpdateSchedule(id int64, req *entity.UpdateScheduleRe
 	if err := uc.scheduleRepo.Update(schedule); err != nil {
 		return nil, fmt.Errorf("error updating schedule: %w", err)
 	}
-	// Reagregar job al cron si está activo
 	if uc.isStarted && schedule.Active {
 
 		if err := uc.addJobToCron(schedule); err != nil {
@@ -158,7 +153,6 @@ func (uc *ScheduleUseCase) DeleteSchedule(id int64, userID int64) error {
 	return nil
 }
 
-// Métodos del scheduler
 func (uc *ScheduleUseCase) StartScheduler() {
 	uc.mu.Lock()
 	defer uc.mu.Unlock()
@@ -169,11 +163,9 @@ func (uc *ScheduleUseCase) StartScheduler() {
 	}
 	log.Println("🚀 Starting scheduler...")
 
-	// Cargar todos los schedules activos y registrarlos en el cron
-	if err := uc.loadActiveSchedules(); err != nil {
+	if err := uc.loadActiveSchedulesUnsafe(); err != nil {
 		log.Printf("❌ Error loading active schedules: %v", err)
 	}
-	// Iniciar el cron
 	uc.cron.Start()
 	uc.isStarted = true
 	log.Printf("✅ Scheduler started successfully with %d active jobs", len(uc.activeJobs))
@@ -189,12 +181,12 @@ func (uc *ScheduleUseCase) StopScheduler() {
 	}
 	log.Println("🛑 Stopping scheduler...")
 	uc.cron.Stop()
-	uc.activeJobs = make(map[int64]cron.EntryID) // Limpiar jobs activos
+	uc.activeJobs = make(map[int64]cron.EntryID)
 	uc.isStarted = false
 	log.Println("✅ Scheduler stopped successfully")
 }
 
-func (uc *ScheduleUseCase) loadActiveSchedules() error {
+func (uc *ScheduleUseCase) loadActiveSchedulesUnsafe() error {
 	schedules, err := uc.scheduleRepo.FindActiveSchedules()
 
 	if err != nil {
@@ -205,7 +197,7 @@ func (uc *ScheduleUseCase) loadActiveSchedules() error {
 
 	for _, schedule := range schedules {
 
-		if err := uc.addJobToCron(schedule); err != nil {
+		if err := uc.addJobToCronUnsafe(schedule); err != nil {
 			log.Printf("❌ Failed to add schedule %d to cron: %v", schedule.ID, err)
 		} else {
 			successCount++
@@ -220,21 +212,26 @@ func (uc *ScheduleUseCase) loadActiveSchedules() error {
 func (uc *ScheduleUseCase) addJobToCron(schedule *entity.Schedule) error {
 	uc.mu.Lock()
 	defer uc.mu.Unlock()
+	return uc.addJobToCronUnsafe(schedule)
+}
+
+func (uc *ScheduleUseCase) addJobToCronUnsafe(schedule *entity.Schedule) error {
 
 	if _, exists := uc.activeJobs[schedule.ID]; exists {
 		log.Printf("⚠️  Job already exists for schedule %d, skipping", schedule.ID)
 		return nil
 	}
+	scheduleID := schedule.ID
+	scheduleName := schedule.Name
+	scheduleURL := schedule.URL
 	jobFunc := func() {
-		uc.executeSchedule(schedule)
+		uc.executeScheduleByID(scheduleID, scheduleName, scheduleURL)
 	}
-	// Agregar job al cron
 	entryID, err := uc.cron.AddFunc(schedule.CronExpr, jobFunc)
 
 	if err != nil {
 		return fmt.Errorf("error adding job to cron: %w", err)
 	}
-	// Guardar referencia del job
 	uc.activeJobs[schedule.ID] = entryID
 	log.Printf("🕒 Job registered for schedule %d with cron expression: %s", schedule.ID, schedule.CronExpr)
 	return nil
@@ -251,38 +248,56 @@ func (uc *ScheduleUseCase) removeJobFromCron(scheduleID int64) {
 	}
 }
 
-func (uc *ScheduleUseCase) executeSchedule(schedule *entity.Schedule) {
+func (uc *ScheduleUseCase) executeScheduleByID(scheduleID int64, scheduleName, scheduleURL string) {
 	log.Printf("🔄 Executing scheduled scraping: %s (ID: %d, URL: %s)",
-		schedule.Name, schedule.ID, schedule.URL)
-
-	now := time.Now()
-	// Ejecutar scraping
-	_, err := uc.scrapingUC.ScrapeURL(schedule.URL, schedule.UserID)
+		scheduleName, scheduleID, scheduleURL)
+	schedule, err := uc.scheduleRepo.FindByID(scheduleID)
 
 	if err != nil {
-		log.Printf("❌ Error executing scheduled scraping %d: %v", schedule.ID, err)
+		log.Printf("❌ Error fetching schedule %d: %v", scheduleID, err)
+		return
+	}
+	if schedule == nil {
+		log.Printf("❌ Schedule %d not found, removing from cron", scheduleID)
+		uc.removeJobFromCron(scheduleID)
+		return
+	}
+	if !schedule.Active {
+		log.Printf("⚠️  Schedule %d is no longer active, removing from cron", scheduleID)
+		uc.removeJobFromCron(scheduleID)
+		return
+	}
+	now := time.Now()
+	_, err = uc.scrapingUC.ScrapeURL(schedule.URL, schedule.UserID)
+
+	if err != nil {
+		log.Printf("❌ Error executing scheduled scraping %d: %v", scheduleID, err)
 	} else {
 		log.Printf("✅ Scheduled scraping completed successfully: %s", schedule.Name)
 	}
-	// Actualizar última ejecución y contador
 	newRunCount := schedule.RunCount + 1
 
-	if err := uc.scheduleRepo.UpdateLastRun(schedule.ID, now, newRunCount); err != nil {
-		log.Printf("❌ Error updating last run for schedule %d: %v", schedule.ID, err)
+	if err := uc.scheduleRepo.UpdateLastRun(scheduleID, now, newRunCount); err != nil {
+		log.Printf("❌ Error updating last run for schedule %d: %v", scheduleID, err)
 	}
-	// Calcular y actualizar próxima ejecución
 	nextRun, err := uc.calculateNextRun(schedule.CronExpr)
 
 	if err != nil {
-		log.Printf("❌ Error calculating next run for schedule %d: %v", schedule.ID, err)
+		log.Printf("❌ Error calculating next run for schedule %d: %v", scheduleID, err)
 		return
 	}
-	if err := uc.scheduleRepo.UpdateNextRun(schedule.ID, nextRun); err != nil {
-		log.Printf("❌ Error updating next run for schedule %d: %v", schedule.ID, err)
+
+	if err := uc.scheduleRepo.UpdateNextRun(scheduleID, nextRun); err != nil {
+		log.Printf("❌ Error updating next run for schedule %d: %v", scheduleID, err)
 	} else {
-		log.Printf("📅 Next run for schedule %d: %v", schedule.ID, nextRun)
+		log.Printf("📅 Next run for schedule %d: %v", scheduleID, nextRun)
 	}
 }
+
+//func (uc *ScheduleUseCase) executeSchedule(schedule *entity.Schedule) {
+//	// Esta función mantiene compatibilidad hacia atrás
+//	uc.executeScheduleByID(schedule.ID, schedule.Name, schedule.URL)
+//}
 
 func (uc *ScheduleUseCase) validateCronExpression(cronExpr string) error {
 	_, err := uc.cronParser.Parse(cronExpr)
@@ -291,7 +306,6 @@ func (uc *ScheduleUseCase) validateCronExpression(cronExpr string) error {
 
 func (uc *ScheduleUseCase) calculateNextRun(cronExpr string) (time.Time, error) {
 	schedule, err := uc.cronParser.Parse(cronExpr)
-
 	if err != nil {
 		return time.Time{}, err
 	}

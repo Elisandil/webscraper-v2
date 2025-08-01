@@ -1,4 +1,3 @@
-// internal/infrastructure/persistence/schedule_repository.go
 package persistence
 
 import (

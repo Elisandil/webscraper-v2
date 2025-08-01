@@ -8,4 +8,8 @@ type ScrapingRepository interface {
 	FindAllByUserID(userID int64) ([]*entity.ScrapingResult, error)
 	FindByID(id int64) (*entity.ScrapingResult, error)
 	Delete(id int64) error
+
+	// Pagination methods
+	FindAllByUserIDPaginated(userID int64, pagination *entity.PaginationRequest) ([]*entity.ScrapingResult, int64, error)
+	CountByUserID(userID int64) (int64, error)
 }

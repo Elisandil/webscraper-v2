@@ -213,6 +213,86 @@ func (r *scrapingRepository) Delete(id int64) error {
 	return nil
 }
 
+// Temporary methods for pagination
+// ------------------------------------------------------------------------------------------------------
+
+func (r *scrapingRepository) FindAllByUserIDPaginated(userID int64, pagination *entity.PaginationRequest) ([]*entity.ScrapingResult, int64, error) {
+	totalCount, err := r.CountByUserID(userID)
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("error counting results: %w", err)
+	}
+	if totalCount == 0 {
+		return []*entity.ScrapingResult{}, 0, nil
+	}
+	query := `
+    SELECT 
+        id, user_id, url, title, description, keywords, author, language,
+        favicon, image_url, site_name, links, images, headers, status_code,
+        content_type, word_count, load_time_ms, created_at
+    FROM scraping_results
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+    LIMIT ? OFFSET ?
+    `
+	rows, err := r.db.Query(query, userID, pagination.PerPage, pagination.Offset())
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("error querying paginated results: %w", err)
+	}
+	defer rows.Close()
+	var results []*entity.ScrapingResult
+
+	for rows.Next() {
+		result := &entity.ScrapingResult{}
+		var linksJSON, imagesJSON, headersJSON, createdAt string
+
+		err := rows.Scan(
+			&result.ID, &result.UserID, &result.URL, &result.Title, &result.Description,
+			&result.Keywords, &result.Author, &result.Language, &result.Favicon, &result.ImageURL,
+			&result.SiteName, &linksJSON, &imagesJSON, &headersJSON, &result.StatusCode,
+			&result.ContentType, &result.WordCount, &result.LoadTime, &createdAt,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error scanning row: %w", err)
+		}
+		// Unmarshal JSON fields
+		if err := r.unmarshalJSONField(linksJSON, &result.Links); err != nil {
+			result.Links = []string{}
+		}
+		if err := r.unmarshalJSONField(imagesJSON, &result.Images); err != nil {
+			result.Images = []string{}
+		}
+		if err := r.unmarshalJSONField(headersJSON, &result.Headers); err != nil {
+			result.Headers = []entity.Header{}
+		}
+		result.CreatedAt, err = r.parseDateTime(createdAt)
+
+		if err != nil {
+			return nil, 0, fmt.Errorf("error parsing created_at: %w", err)
+		}
+		results = append(results, result)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("error iterating rows: %w", err)
+	}
+	return results, totalCount, nil
+}
+
+func (r *scrapingRepository) CountByUserID(userID int64) (int64, error) {
+	query := `SELECT COUNT(*) FROM scraping_results WHERE user_id = ?`
+	var count int64
+	err := r.db.QueryRow(query, userID).Scan(&count)
+
+	if err != nil {
+		return 0, fmt.Errorf("error counting results by user ID: %w", err)
+	}
+	return count, nil
+}
+
+// -------------------------------------------------------------------------------------------------------
+
 func (r *scrapingRepository) unmarshalJSONField(jsonStr string, target interface{}) error {
 
 	if jsonStr == "" {
@@ -229,6 +309,7 @@ func (r *scrapingRepository) parseDateTime(dateStr string) (time.Time, error) {
 		"2006-01-02 15:04:05",
 		time.DateTime,
 	}
+
 	for _, format := range formats {
 
 		if t, err := time.Parse(format, dateStr); err == nil {

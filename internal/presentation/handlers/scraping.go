@@ -66,9 +66,15 @@ func (h *ScrapingHandler) Scrape(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccessResponse(w, "URL scraped successfully", result)
 }
 
+// Provosional GetResults, having pagination logic in the usecase
 func (h *ScrapingHandler) GetResults(w http.ResponseWriter, r *http.Request) {
+	// Verify if pagination parameters are present
+	if r.URL.Query().Get("page") != "" || r.URL.Query().Get("per_page") != "" {
+		h.GetResultsPaginated(w, r)
+		return
+	}
 	user := middleware.GetUserFromContext(r.Context())
-
+	// Check if user is authenticated
 	if user == nil {
 		response.SendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
@@ -132,6 +138,51 @@ func (h *ScrapingHandler) DeleteResult(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Deleted result ID: %d (%s)", id, result.URL)
 	response.SendNoContent(w)
 }
+
+// Handler for paginated results
+//-------------------------------------------------------------------------------------------------------
+
+func (h *ScrapingHandler) GetResultsPaginated(w http.ResponseWriter, r *http.Request) {
+	user := middleware.GetUserFromContext(r.Context())
+
+	if user == nil {
+		response.SendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
+		return
+	}
+	pageStr := r.URL.Query().Get("page")
+	perPageStr := r.URL.Query().Get("per_page")
+	page := 1
+	perPage := 10
+
+	if pageStr != "" {
+
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+	if perPageStr != "" {
+
+		if pp, err := strconv.Atoi(perPageStr); err == nil && pp > 0 {
+			perPage = pp
+		}
+	}
+	paginatedResults, err := h.scrapingUseCase.GetAllResultsPaginated(user.ID, page, perPage)
+
+	if err != nil {
+		log.Printf("Error getting paginated results: %v", err)
+		response.SendErrorResponse(w, "Failed to retrieve results", http.StatusInternalServerError, err.Error())
+		return
+	}
+	log.Printf("Retrieved %d results (page %d of %d) for user %d",
+		len(paginatedResults.Data),
+		paginatedResults.Pagination.CurrentPage,
+		paginatedResults.Pagination.TotalPages,
+		user.ID)
+
+	response.SendSuccessResponse(w, "Results retrieved successfully", paginatedResults)
+}
+
+//--------------------------------------------------------------------------------------------------------
 
 func parseID(r *http.Request) (int64, error) {
 	return strconv.ParseInt(mux.Vars(r)["id"], 10, 64)

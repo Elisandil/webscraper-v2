@@ -97,6 +97,33 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccessResponse(w, "Token refreshed successfully", resp)
 }
 
+// Logout handler
+// -----------------------------------------------------------------------------
+
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		response.SendErrorResponse(w, "Authorization header required", http.StatusBadRequest, "")
+		return
+	}
+
+	tokenParts := strings.Split(authHeader, " ")
+	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		response.SendErrorResponse(w, "Invalid authorization header", http.StatusBadRequest, "")
+		return
+	}
+
+	tokenString := tokenParts[1]
+	if err := h.authUseCase.RevokeToken(tokenString); err != nil {
+		response.SendErrorResponse(w, "Failed to revoke token", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.SendSuccessResponse(w, "Logged out successfully", nil)
+}
+
+// -------------------------------------------------------------------------
+
 func (h *AuthHandler) Profile(w http.ResponseWriter, r *http.Request) {
 	user := middleware.GetUserFromContext(r.Context())
 

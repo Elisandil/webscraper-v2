@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 	"webscraper-v2/internal/config"
 	"webscraper-v2/internal/domain/entity"
@@ -13,9 +14,16 @@ import (
 )
 
 type AuthUseCase struct {
-	userRepo repository.UserRepository
-	config   *config.Config
+	userRepo       repository.UserRepository
+	config         *config.Config
+	tokenBlacklist map[string]time.Time // En producción usar Redis
+	blacklistMu    sync.RWMutex
 }
+
+//type AuthUseCase struct {
+//	userRepo repository.UserRepository
+//	config   *config.Config
+//}
 
 type Claims struct {
 	UserID   int64  `json:"user_id"`
@@ -25,11 +33,23 @@ type Claims struct {
 }
 
 func NewAuthUseCase(userRepo repository.UserRepository, cfg *config.Config) *AuthUseCase {
-	return &AuthUseCase{
-		userRepo: userRepo,
-		config:   cfg,
+	uc := &AuthUseCase{
+		userRepo:       userRepo,
+		config:         cfg,
+		tokenBlacklist: make(map[string]time.Time),
 	}
+
+	// Limpiar tokens expirados cada hora
+	go uc.cleanupExpiredTokens()
+	return uc
 }
+
+//func NewAuthUseCase(userRepo repository.UserRepository, cfg *config.Config) *AuthUseCase {
+//	return &AuthUseCase{
+//		userRepo: userRepo,
+//		config:   cfg,
+//	}
+//}
 
 func (uc *AuthUseCase) Register(req *entity.RegisterRequest) (*entity.AuthResponse, error) {
 	existsUsername, err := uc.userRepo.ExistsUsername(req.Username)
@@ -107,22 +127,22 @@ func (uc *AuthUseCase) Login(req *entity.LoginRequest) (*entity.AuthResponse, er
 	}, nil
 }
 
-func (uc *AuthUseCase) ValidateToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(uc.config.Auth.JWTSecret), nil
-	})
+//func (uc *AuthUseCase) ValidateToken(tokenString string) (*Claims, error) {
+//	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+//			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+//		}
+//		return []byte(uc.config.Auth.JWTSecret), nil
+//	})
 
-	if err != nil {
-		return nil, fmt.Errorf("error parsing token: %w", err)
-	}
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
-	}
-	return nil, errors.New("invalid token")
-}
+//	if err != nil {
+//		return nil, fmt.Errorf("error parsing token: %w", err)
+//	}
+//	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+//		return claims, nil
+//	}
+//	return nil, errors.New("invalid token")
+//}
 
 func (uc *AuthUseCase) GetUserByID(id int64) (*entity.User, error) {
 	user, err := uc.userRepo.FindByID(id)
@@ -134,6 +154,33 @@ func (uc *AuthUseCase) GetUserByID(id int64) (*entity.User, error) {
 		user.Password = ""
 	}
 	return user, nil
+}
+
+func (uc *AuthUseCase) ValidateToken(tokenString string) (*Claims, error) {
+	uc.blacklistMu.RLock()
+	if expiry, exists := uc.tokenBlacklist[tokenString]; exists {
+		uc.blacklistMu.RUnlock()
+		if time.Now().Before(expiry) {
+			return nil, errors.New("token has been revoked")
+		}
+	}
+	uc.blacklistMu.RUnlock()
+
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(uc.config.Auth.JWTSecret), nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("error parsing token: %w", err)
+	}
+
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, errors.New("invalid token")
 }
 
 func (uc *AuthUseCase) RefreshToken(tokenString string) (*entity.AuthResponse, error) {
@@ -185,3 +232,43 @@ func (uc *AuthUseCase) generateToken(user *entity.User) (string, time.Time, erro
 	}
 	return tokenString, expiresAt, nil
 }
+
+// New methods
+// -------------------------------------------------------------------------------
+
+func (uc *AuthUseCase) RevokeToken(tokenString string) error {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(uc.config.Auth.JWTSecret), nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if claims, ok := token.Claims.(*Claims); ok {
+		uc.blacklistMu.Lock()
+		uc.tokenBlacklist[tokenString] = claims.ExpiresAt.Time
+		uc.blacklistMu.Unlock()
+		return nil
+	}
+
+	return errors.New("invalid token")
+}
+
+func (uc *AuthUseCase) cleanupExpiredTokens() {
+	ticker := time.NewTicker(1 * time.Hour)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		uc.blacklistMu.Lock()
+		now := time.Now()
+		for token, expiry := range uc.tokenBlacklist {
+			if now.After(expiry) {
+				delete(uc.tokenBlacklist, token)
+			}
+		}
+		uc.blacklistMu.Unlock()
+	}
+}
+
+// -----------------------------------------------------------------------------

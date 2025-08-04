@@ -227,26 +227,23 @@ func (uc *ScrapingUseCase) checkURLExists(url string) bool {
 }
 
 func (uc *ScrapingUseCase) calculateWordCount(content string, result *entity.ScrapingResult) {
-	// Remover etiquetas HTML
 	re := regexp.MustCompile(`<[^>]*>`)
 	text := re.ReplaceAllString(content, " ")
-
-	// Contar palabras
 	words := strings.Fields(text)
 	result.WordCount = len(words)
 }
 
 func (uc *ScrapingUseCase) resolveURL(base, href string) string {
 	baseURL, err := url.Parse(base)
+
 	if err != nil {
 		return ""
 	}
-
 	hrefURL, err := url.Parse(href)
+
 	if err != nil {
 		return ""
 	}
-
 	return baseURL.ResolveReference(hrefURL).String()
 }
 
@@ -268,6 +265,26 @@ func (uc *ScrapingUseCase) GetResult(id int64) (*entity.ScrapingResult, error) {
 func (uc *ScrapingUseCase) DeleteResult(id int64) error {
 	return uc.repo.Delete(id)
 }
+
+// Temporary method for pagination
+// ------------------------------------------------------------------------------------------------------
+
+func (uc *ScrapingUseCase) GetAllResultsPaginated(userID int64, page, perPage int) (*entity.PaginatedScrapingResults, error) {
+	paginationReq := entity.NewPaginationRequest(page, perPage)
+	results, totalCount, err := uc.repo.FindAllByUserIDPaginated(userID, paginationReq)
+
+	if err != nil {
+		return nil, fmt.Errorf("error getting paginated results: %w", err)
+	}
+	paginationResp := entity.NewPaginationResponse(paginationReq.Page, paginationReq.PerPage, totalCount)
+
+	return &entity.PaginatedScrapingResults{
+		Data:       results,
+		Pagination: paginationResp,
+	}, nil
+}
+
+// -------------------------------------------------------------------------------------------------------
 
 //func addRealisticHeaders(req *http.Request) {
 //	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "+

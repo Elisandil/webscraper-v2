@@ -71,6 +71,7 @@ func (rt *Router) setupAuthRoutes() {
 	auth.HandleFunc("/register", rt.authHandler.Register).Methods("POST")
 	auth.HandleFunc("/login", rt.authHandler.Login).Methods("POST")
 	auth.HandleFunc("/refresh", rt.authHandler.RefreshToken).Methods("POST")
+	auth.HandleFunc("/logout", rt.authHandler.Logout).Methods("POST")
 }
 
 func (rt *Router) setupAPIRoutes() {

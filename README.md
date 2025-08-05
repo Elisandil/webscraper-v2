@@ -290,12 +290,9 @@ Content-Type: application/json
 }
 ```
 
-<figure>
-  <img src="assets/RegisterForm.png" alt="Register View" />
-  <figcaption>Figura 1. Pantalla de Registro de usuario</figcaption>
-</figure>
+![Registro de usuario](assets/RegisterForm.png)
 
-2. **Autenticación**
+1. **Autenticación**
    
 ```bash
 POST /api/auth/login
@@ -305,13 +302,9 @@ Content-Type: application/json
   "username": "usuario",
   "password": "password123"
 }
-
-NOTA: Usuario de prueba
-{
-  "username": "admin1"
-  "password": "123456"
-}
 ```
+
+![Login de usuario](assets/LoginForm.png)
 
 Respuesta:
 ```json
@@ -333,12 +326,7 @@ Respuesta:
 
 El token se guarda en `localStorage` para futuras peticiones.
 
-<figure>
-  <img src="assets/LoginForm.png" alt="Login View" />
-  <figcaption>Figura 2. Pantalla de Autenticación del usuario</figcaption>
-</figure>
-
-3. **Scraping de URLs**
+2. **Scraping de URLs**
    
 ```bash
 POST /api/scrape
@@ -352,21 +340,25 @@ Content-Type: application/json
 
 Devuelve el objeto `ScrapingResult` completo y lo persiste asociándolo al usuario autenticado.
 
-4. **Listar resultados con paginación**
+3. **Listar resultados con paginación**
    
 ```bash
 GET /api/results?page=1&per_page=10
 Authorization: Bearer <token>
 ```
 
+<p>
+  <img src="assets/ScrapingModal.png" width="500" alt="Resultados" />
+  <br>
+  <img src="assets/Pagination01.png" width="250" alt="Páginación 1" />
+  <img src="assets/Pagination02.png" width="400" alt="Páginación 2" />
+</p>
+
 Solo devuelve los scrapes del usuario autenticado con información de paginación (opcional).
 
-<figure>
-    <img src="assets/MainView.png" alt="Main View" />
-    <figcaption>Figura 3. Pantalla de resultados scrapeados</figcaption>
-</figure>
 
-5. **Programar tareas automáticas**
+
+1. **Programar tareas automáticas**
    
 ```bash
 POST /api/schedules
@@ -380,19 +372,21 @@ Content-Type: application/json
 }
 ```
 
+<p align="center">
+  <img src="assets/ScheduleForm.png" width="350" alt="Modal para Schedules" />
+  <img src="assets/ScheduleSection.png" width="300" alt="Resultados de Schedules" />
+</p>
+
 La tarea se ejecutará automáticamente según la expresión cron (diariamente a las 9:00).
 
-6. **Detalles y eliminación**
+5. **Detalles y eliminación**
    
 - `GET /api/results/{id}` - Ver detalles completos
 - `DELETE /api/results/{id}` - Eliminar resultado
 
-<figure>
-    <img src="assets/ScrapingModal.png" alt="Scraping Modal" />
-    <figcaption>Figura 4. Pantalla de diálogo modal con los resultados de una web</figcaption>
-</figure>
+![Scraping Modal](assets/MainView.png)
 
-7. **Logout seguro**
+6. **Logout seguro**
    
 ```bash
 POST /api/auth/logout
@@ -401,7 +395,7 @@ Authorization: Bearer <token>
 
 Revoca el token añadiéndolo a la blacklist hasta su expiración natural.
 
-8. **Health check**
+7. **Health check**
    
 ```bash
 GET /api/health

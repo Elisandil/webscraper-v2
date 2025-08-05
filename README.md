@@ -38,15 +38,15 @@ Una vez presentado y evaluado exitosamente, me di cuenta de que tenía entre mis
 Los comienzos fueron duros. Decidí cambiar completamente el stack tecnológico, pasando de Java/Kotlin a Go. Este salto implicó enfrentarme a una nueva sintaxis, la gestión de punteros(algo completamente nuevo viniendo de Java), el no uso de modificadores de acceso (al menos de forma explícita), concurrencia con goroutines, etc.
 
 Probablemente la mayor dificultad la encontré al intentar entender e implementar Clean Architecture. Venía acostumbrado al típico MVC de toda la vida, donde todo era más directo y menos abstracto.
-Clean Architecture me obligó a: pensar en capas de abstracción reales, implementar inversión de dependencias manualmente
-separar lógica de negocio de infraestructura (sigue siendo aún dificil), o crear interfaces como contratos, no como herencia.
-Fue frustrante al principio, pero al final entendí la escalabilidad que proporciona.
+Clean Architecture me obligó a pensar en capas de abstracción reales, implementar inversión de dependencias manualmente,
+separar lógica de negocio de infraestructura (sigue siendo dificil), o crear interfaces como contratos y no como herencia.
+Fue frustrante al principio, pero al final entendí la escalabilidad que proporciona a tus proyectos así como sus beneficios.
 
-Cuando mi frontend vanilla se quedó pequeño, llegó el momento de otra nueva decisión: React.js vs Angular.
+Cuando mi frontend se quedó pequeño, llegó el momento de otra nueva decisión: React.js vs Angular.
 Tras investigar ambos frameworks y sacar mis conclusiones:
 - Angular: Potente pero pesado, mayor curva de aprendizaje.
 - React: Más directo, enfoque funcional, ecosistema maduro.
-Me decanté por React.
+Al final me decanté por React. A pesar de no estar muy bien implementados en el proyecto, comprendí los beneficios de usar hooks para cambiar los estados y ciclos de vida de los componentes.
 
 ## Lo que realmente aprendí
 Más allá de las tecnologías, este proyecto me enseñó:

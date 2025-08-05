@@ -9,7 +9,6 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
   - [Índice](#índice)
   - [El Viaje de Aprendizaje](#el-viaje-de-aprendizaje)
   - [Lo que realmente aprendí](#lo-que-realmente-aprendí)
-  - [Demo](#demo)
   - [Características](#características)
   - [Estructura del Proyecto](#estructura-del-proyecto)
   - [Requisitos](#requisitos)
@@ -75,49 +74,49 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 
 ```
 /
-├── config.yaml              # Configuración de servidor, BD, scraping y auth
-├── data/                    # Base de datos SQLite (scraper.db)
+├── config.yaml                            # Configuración de servidor, BD, scraping y auth
+├── data/                                  # Base de datos SQLite (scraper.db)
 ├── internal/
-│   ├── config/              # Carga de configuración YAML
+│   ├── config/                            # Carga de configuración YAML
 │   ├── domain/
-│   │   ├── entity/          # Modelos para la lógica del negocio
-│   │   │   ├── pagination.go    # Entidades de paginación
-│   │   │   ├── schedule.go      # Entidad Schedule y DTOs
-│   │   │   ├── scraping.go      # Entidad ScrapingResult
-│   │   │   └── user.go          # Entidad User y DTOs de auth
-│   │   └── repository/      # Interfaces de repositorios
-│   │       ├── schedule.go      # Interface ScheduleRepository
-│   │       ├── scraping.go      # Interface ScrapingRepository
-│   │       └── user.go          # Interface UserRepository
+│   │   ├── entity/                        # Modelos para la lógica del negocio
+│   │   │   ├── pagination.go                  # Entidades de paginación
+│   │   │   ├── schedule.go                    # Entidad Schedule y DTOs
+│   │   │   ├── scraping.go                    # Entidad ScrapingResult
+│   │   │   └── user.go                        # Entidad User y DTOs de auth
+│   │   └── repository/                    # Interfaces de repositorios
+│   │       ├── schedule.go                    # Interface ScheduleRepository
+│   │       ├── scraping.go                    # Interface ScrapingRepository
+│   │       └── user.go                        # Interface UserRepository
 │   ├── infrastructure/
-│   │   ├── database/        # SQLite + migraciones automáticas
-│   │   │   └── sqlite.go        # Conexión y creación de tablas
-│   │   └── persistence/     # Implementación de repositorios
-│   │       ├── schedule_repository.go    # Repositorio de Schedule
-│   │       ├── scraping_repository.go    # Repositorio de Scraping
-│   │       └── user_repository.go        # Repositorio de User
-│   ├── usecase/             # Lógica de negocio
-│   │   ├── auth.go              # Casos de uso de autenticación
-│   │   ├── schedule.go          # Casos de uso de programación
-│   │   └── scraping.go          # Casos de uso de scraping
+│   │   ├── database/                      # SQLite + migraciones automáticas
+│   │   │   └── sqlite.go                      # Conexión y creación de tablas
+│   │   └── persistence/                   # Implementación de repositorios
+│   │       ├── schedule_repository.go         # Repositorio de Schedule
+│   │       ├── scraping_repository.go         # Repositorio de Scraping
+│   │       └── user_repository.go             # Repositorio de User
+│   ├── usecase/                           # Lógica de negocio
+│   │   ├── auth.go                            # Casos de uso de autenticación
+│   │   ├── schedule.go                        # Casos de uso de programación
+│   │   └── scraping.go                        # Casos de uso de scraping
 │   └── presentation/
-│       ├── server/          # Servidor HTTP principal
-│       │   └── server.go        # Inicialización y configuración
-│       ├── routes/          # Configuración centralizada de rutas
-│       │   └── routes.go        # Setup de todas las rutas
-│       ├── handlers/        # Controladores HTTP
-│       │   ├── auth.go          # Handlers de autenticación
-│       │   ├── common.go        # Handlers comunes (health, index)
-│       │   ├── schedule.go      # Handlers de programación
-│       │   └── scraping.go      # Handlers de scraping
-│       ├── middleware/      # Middleware de la aplicación
-│       │   ├── auth.go          # JWT, roles y autenticación
-│       │   └── common.go        # Logging, CORS, content-type
-│       └── response/        # Helpers para respuestas HTTP
-│           └── helpers.go       # Respuestas estandarizadas
-├── main.go                  # Punto de entrada del backend
-├── go.mod, go.sum           # Dependencias Go
-└── webscrapper-frontend/    # Proyecto React + Tailwind
+│       ├── server/                        # Servidor HTTP principal
+│       │   └── server.go                      # Inicialización y configuración
+│       ├── routes/                        # Configuración centralizada de rutas
+│       │   └── routes.go                      # Setup de todas las rutas
+│       ├── handlers/                      # Controladores HTTP
+│       │   ├── auth.go                        # Handlers de autenticación
+│       │   ├── common.go                      # Handlers comunes (health, index)
+│       │   ├── schedule.go                    # Handlers de programación
+│       │   └── scraping.go                    # Handlers de scraping
+│       ├── middleware/                    # Middleware de la aplicación
+│       │   ├── auth.go                        # JWT, roles y autenticación
+│       │   └── common.go                      # Logging, CORS, content-type
+│       └── response/                      # Helpers para respuestas HTTP
+│           └── helpers.go                     # Respuestas estandarizadas
+├── main.go                                # Punto de entrada del backend
+├── go.mod, go.sum                         # Dependencias Go
+└── webscrapper-frontend/                  # Proyecto React + Tailwind
     ├── public/
     ├── src/
     │  ├── api/

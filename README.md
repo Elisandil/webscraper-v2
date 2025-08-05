@@ -58,10 +58,6 @@ Arquitectura pensada: No es solo hacer que funcione, sino que funcione bien.
 Toma de decisiones: Evaluar tecnologías y elegir la más adecuada.
 Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 
-## Demo
-
-![Demo del proyecto](assets/video-de-muestra.mp4)
-
 
 ## Características
 - **Clean Architecture** (Domain, Use Cases, Infrastructure, Presentation)

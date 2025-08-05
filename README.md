@@ -46,6 +46,7 @@ Cuando mi frontend se quedó pequeño, llegó el momento de otra nueva decisión
 Tras investigar ambos frameworks y sacar mis conclusiones:
 - Angular: Potente pero pesado, mayor curva de aprendizaje.
 - React: Más directo, enfoque funcional, ecosistema maduro.
+
 Al final me decanté por React. A pesar de no estar muy bien implementados en el proyecto, comprendí los beneficios de usar hooks para cambiar los estados y ciclos de vida de los componentes.
 
 ## Lo que realmente aprendí

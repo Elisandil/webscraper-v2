@@ -6,7 +6,6 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
 
 ## Índice
 - [WebScraper App](#webscraper-app)
-  - [Índice](#índice)
   - [El Viaje de Aprendizaje](#el-viaje-de-aprendizaje)
   - [Lo que realmente aprendí](#lo-que-realmente-aprendí)
   - [Características](#características)

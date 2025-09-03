@@ -61,7 +61,7 @@ export function useSchedules() {
       });
 
       if (ok) {
-        await loadSchedules(); // Recargar la lista
+        await loadSchedules();
         return { success: true, data: data.data };
       } else {
         return { success: false, error: data.error || 'Error al actualizar el schedule' };
@@ -79,7 +79,7 @@ export function useSchedules() {
       });
 
       if (ok) {
-        await loadSchedules(); // Recargar la lista
+        await loadSchedules();
         return { success: true };
       } else {
         return { success: false, error: data.error || 'Error al eliminar el schedule' };
@@ -104,12 +104,10 @@ export function useSchedules() {
     }
   }, []);
 
-  // Cargar schedules al montar el componente
   useEffect(() => {
     loadSchedules();
   }, [loadSchedules]);
 
-  // Escuchar eventos de recarga
   useEffect(() => {
     const handleReload = () => {
       loadSchedules();

@@ -13,7 +13,6 @@ function App() {
   const [activeTab, setActiveTab] = useState("scraping");
   const [usePagination, setUsePagination] = useState(false);
   
-  // Función para recargar resultados (sin paginación - para compatibilidad)
   const reloadResults = useCallback(() => {
     if (!usePagination) {
       apiRequest("/results").then(({ ok, data }) => {
@@ -30,7 +29,7 @@ function App() {
       apiRequest("/results").then(({ ok, data }) => {
         if (ok) {
           setUser(true);
-          // Solo cargar resultados si no usamos paginación
+
           if (!usePagination) {
             setResults(data.data || []);
           }

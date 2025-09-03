@@ -96,7 +96,6 @@ export const usePagination = (initialPage = 1, initialPerPage = 10) => {
     fetchResults(currentPage, perPage);
   }, [fetchResults, currentPage, perPage]);
 
-  // Fetch results when page or perPage changes
   useEffect(() => {
     fetchResults(currentPage, perPage);
   }, [currentPage, perPage, fetchResults]);
@@ -113,17 +112,17 @@ export const usePagination = (initialPage = 1, initialPerPage = 10) => {
     loading,
     error,
     
-    // Current state
+    // Estado actual
     currentPage,
     perPage,
     
-    // Actions
+    // Acciones
     handlePageChange,
     handlePerPageChange,
     handleDelete,
     refresh,
-    
-    // Computed values
+
+    // Valores
     hasNext: pagination.has_next && currentPage < totalPages,
     hasPrev: pagination.has_prev && currentPage > 1,
     totalItems,

@@ -1,9 +1,9 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 	"webscraper-v2/internal/config"
 	"webscraper-v2/internal/domain/entity"
@@ -14,16 +14,12 @@ import (
 )
 
 type AuthUseCase struct {
-	userRepo       repository.UserRepository
-	config         *config.Config
-	tokenBlacklist map[string]time.Time // En producción usar Redis
-	blacklistMu    sync.RWMutex
+	userRepo  repository.UserRepository
+	tokenRepo repository.TokenRepository
+	config    *config.Config
+	ctx       context.Context
+	cancel    context.CancelFunc
 }
-
-//type AuthUseCase struct {
-//	userRepo repository.UserRepository
-//	config   *config.Config
-//}
 
 type Claims struct {
 	UserID   int64  `json:"user_id"`
@@ -32,24 +28,23 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func NewAuthUseCase(userRepo repository.UserRepository, cfg *config.Config) *AuthUseCase {
-	uc := &AuthUseCase{
-		userRepo:       userRepo,
-		config:         cfg,
-		tokenBlacklist: make(map[string]time.Time),
-	}
+func NewAuthUseCase(userRepo repository.UserRepository, tokenRepo repository.TokenRepository, cfg *config.Config) *AuthUseCase {
+	ctx, cancel := context.WithCancel(context.Background())
 
-	// Limpiar tokens expirados cada hora
+	uc := &AuthUseCase{
+		userRepo:  userRepo,
+		tokenRepo: tokenRepo,
+		config:    cfg,
+		ctx:       ctx,
+		cancel:    cancel,
+	}
 	go uc.cleanupExpiredTokens()
 	return uc
 }
 
-//func NewAuthUseCase(userRepo repository.UserRepository, cfg *config.Config) *AuthUseCase {
-//	return &AuthUseCase{
-//		userRepo: userRepo,
-//		config:   cfg,
-//	}
-//}
+func (uc *AuthUseCase) Shutdown() {
+	uc.cancel()
+}
 
 func (uc *AuthUseCase) Register(req *entity.RegisterRequest) (*entity.AuthResponse, error) {
 	existsUsername, err := uc.userRepo.ExistsUsername(req.Username)
@@ -157,15 +152,14 @@ func (uc *AuthUseCase) GetUserByID(id int64) (*entity.User, error) {
 }
 
 func (uc *AuthUseCase) ValidateToken(tokenString string) (*Claims, error) {
-	uc.blacklistMu.RLock()
-	if expiry, exists := uc.tokenBlacklist[tokenString]; exists {
-		uc.blacklistMu.RUnlock()
-		if time.Now().Before(expiry) {
-			return nil, errors.New("token has been revoked")
-		}
-	}
-	uc.blacklistMu.RUnlock()
+	isRevoked, err := uc.tokenRepo.IsTokenRevoked(tokenString)
 
+	if err != nil {
+		return nil, fmt.Errorf("error checking token revocation: %w", err)
+	}
+	if isRevoked {
+		return nil, errors.New("token has been revoked")
+	}
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -246,12 +240,8 @@ func (uc *AuthUseCase) RevokeToken(tokenString string) error {
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok {
-		uc.blacklistMu.Lock()
-		uc.tokenBlacklist[tokenString] = claims.ExpiresAt.Time
-		uc.blacklistMu.Unlock()
-		return nil
+		return uc.tokenRepo.RevokeToken(tokenString, claims.ExpiresAt.Time)
 	}
-
 	return errors.New("invalid token")
 }
 
@@ -259,15 +249,15 @@ func (uc *AuthUseCase) cleanupExpiredTokens() {
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
 
-	for range ticker.C {
-		uc.blacklistMu.Lock()
-		now := time.Now()
-		for token, expiry := range uc.tokenBlacklist {
-			if now.After(expiry) {
-				delete(uc.tokenBlacklist, token)
+	for {
+		select {
+		case <-ticker.C:
+			if err := uc.tokenRepo.CleanupExpiredTokens(); err != nil {
+				fmt.Printf("Error cleaning up expired tokens: %v\n", err)
 			}
+		case <-uc.ctx.Done():
+			return
 		}
-		uc.blacklistMu.Unlock()
 	}
 }
 

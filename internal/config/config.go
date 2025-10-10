@@ -1,6 +1,9 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -83,10 +86,28 @@ func Load(path string) (*Config, error) {
 		config.Features.CacheDuration = 3600
 	}
 
-	// Authentication defaults
 	if config.Auth.JWTSecret == "" {
-		config.Auth.JWTSecret = "default_secret"
+		config.Auth.JWTSecret = os.Getenv("JWT_SECRET")
+
+		if config.Auth.JWTSecret == "" {
+
+			if os.Getenv("ENV") == "development" {
+				secret, err := generateRandomSecret(32)
+				if err != nil {
+					return nil, fmt.Errorf("failed to generate JWT secret: %w", err)
+				}
+				config.Auth.JWTSecret = secret
+				fmt.Println("⚠️  WARNING: Using auto-generated JWT secret. Set JWT_SECRET env var or add jwt_secret to config.yaml for production!")
+			} else {
+				return nil, fmt.Errorf("JWT_SECRET must be set in config.yaml or as environment variable in production")
+			}
+		}
 	}
+
+	if len(config.Auth.JWTSecret) < 32 {
+		return nil, fmt.Errorf("JWT secret must be at least 32 characters long")
+	}
+
 	if config.Auth.TokenDuration == 0 {
 		config.Auth.TokenDuration = 1
 	}
@@ -97,4 +118,13 @@ func Load(path string) (*Config, error) {
 		config.Auth.DefaultRole = "user"
 	}
 	return &config, nil
+}
+
+func generateRandomSecret(length int) (string, error) {
+	bytes := make([]byte, length)
+
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
 }

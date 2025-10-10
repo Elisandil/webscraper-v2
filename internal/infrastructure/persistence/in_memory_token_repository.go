@@ -1,10 +1,12 @@
 package persistence
 
 import (
+	"database/sql"
 	"fmt"
 	"sync"
 	"time"
 	"webscraper-v2/internal/domain/repository"
+	"webscraper-v2/internal/infrastructure/database"
 )
 
 type InMemoryTokenRepository struct {
@@ -30,6 +32,7 @@ func (r *InMemoryTokenRepository) IsTokenRevoked(token string) (bool, error) {
 	defer r.mu.RUnlock()
 
 	if expiry, exists := r.blacklist[token]; exists {
+
 		if time.Now().Before(expiry) {
 			return true, nil
 		}
@@ -56,22 +59,15 @@ func (r *InMemoryTokenRepository) CleanupExpiredTokens() error {
 }
 
 type SQLiteTokenRepository struct {
-	db interface {
-		Exec(query string, args ...interface{}) (interface{}, error)
-		QueryRow(query string, args ...interface{}) interface {
-			Scan(dest ...interface{}) error
-		}
-	}
+	db *database.SQLiteDB
 }
 
-func NewSQLiteTokenRepository(db interface {
-	Exec(query string, args ...interface{}) (interface{}, error)
-	QueryRow(query string, args ...interface{}) interface {
-		Scan(dest ...interface{}) error
-	}
-}) repository.TokenRepository {
+func NewSQLiteTokenRepository(db *database.SQLiteDB) repository.TokenRepository {
 	repo := &SQLiteTokenRepository{db: db}
-	repo.createTable()
+	if err := repo.createTable(); err != nil {
+		// Log error but don't fail, table might already exist
+		fmt.Printf("Warning: error creating token table: %v\n", err)
+	}
 	return repo
 }
 
@@ -85,7 +81,10 @@ func (r *SQLiteTokenRepository) createTable() error {
 	CREATE INDEX IF NOT EXISTS idx_revoked_tokens_expires_at ON revoked_tokens(expires_at);
 	`
 	_, err := r.db.Exec(query)
-	return err
+	if err != nil {
+		return fmt.Errorf("error creating revoked_tokens table: %w", err)
+	}
+	return nil
 }
 
 func (r *SQLiteTokenRepository) RevokeToken(token string, expiresAt time.Time) error {
@@ -102,6 +101,9 @@ func (r *SQLiteTokenRepository) IsTokenRevoked(token string) (bool, error) {
 	var count int
 	err := r.db.QueryRow(query, token, time.Now()).Scan(&count)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
 		return false, fmt.Errorf("error checking revoked token: %w", err)
 	}
 	return count > 0, nil

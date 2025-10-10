@@ -1,114 +1,80 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"webscraper-v2/internal/config"
 	"webscraper-v2/internal/infrastructure/database"
-	repository "webscraper-v2/internal/infrastructure/persistence"
+	"webscraper-v2/internal/infrastructure/persistence"
 	"webscraper-v2/internal/presentation/server"
 	"webscraper-v2/internal/usecase"
 )
 
-const (
-	configFile = "config.yaml"
-	appName    = "WebScraper"
-	version    = "2.0"
-)
-
 func main() {
-	log.Printf("Starting %s v%s", appName, version)
-
 	// Load configuration
-	cfg, err := loadConfig()
-
+	cfg, err := config.Load("config.yaml")
 	if err != nil {
-		log.Fatal("Failed to load configuration:", err)
+		log.Fatalf("❌ Failed to load config: %v", err)
 	}
 	// Initialize database
-	db, err := initializeDatabase(cfg)
+	db, err := database.NewSQLiteDB(cfg.Database.Path)
 
 	if err != nil {
-		log.Fatal("Failed to initialize database:", err)
+		log.Fatalf("❌ Failed to initialize database: %v", err)
 	}
 	defer func() {
-
 		if err := db.Close(); err != nil {
-			log.Printf("Error closing database: %v", err)
+			log.Printf("⚠️  Error closing database: %v", err)
 		}
 	}()
 
 	// Initialize repositories
-	scrapingRepo := repository.NewScrapingRepository(db)
-	userRepo := repository.NewUserRepository(db)
-	scheduleRepo := repository.NewScheduleRepository(db)
+	scrapingRepo := persistence.NewScrapingRepository(db)
+	userRepo := persistence.NewUserRepository(db)
+	scheduleRepo := persistence.NewScheduleRepository(db)
+
+	// Initialize token repository
+	tokenRepo := persistence.NewSQLiteTokenRepository(db)
+
+	log.Println("✅ Database and repositories initialized")
 
 	// Initialize use cases
 	scrapingUC := usecase.NewScrapingUseCase(scrapingRepo, cfg)
-	authUC := usecase.NewAuthUseCase(userRepo, cfg)
+	authUC := usecase.NewAuthUseCase(userRepo, tokenRepo, cfg)
 	scheduleUC := usecase.NewScheduleUseCase(scheduleRepo, scrapingUC, cfg)
+
+	log.Println("✅ Use cases initialized")
 
 	// Initialize server
 	srv := server.NewServer(cfg.Server.Port, cfg, scrapingUC, authUC, scheduleUC)
 
 	// Setup graceful shutdown
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	shutdownChan := make(chan os.Signal, 1)
+	signal.Notify(shutdownChan, os.Interrupt, syscall.SIGTERM)
 
+	// Start server in goroutine
+	serverErrors := make(chan error, 1)
 	go func() {
-		log.Printf("Server starting on port %s", cfg.Server.Port)
-		log.Printf("Server URL: http://localhost:%s", cfg.Server.Port)
-
+		log.Printf("🚀 Starting WebScraper v2...")
 		if err := srv.Start(); err != nil {
-			log.Fatal("Failed to start server:", err)
+			serverErrors <- err
 		}
 	}()
-	sig := <-sigChan
-	log.Printf("Received signal: %v. Shutting down gracefully...", sig)
 
-	// Stop scheduler before closing
-	scheduleUC.StopScheduler()
+	select {
+	case err := <-serverErrors:
+		log.Fatalf("❌ Server error: %v", err)
+	case sig := <-shutdownChan:
+		log.Printf("\n📥 Received signal: %v", sig)
+		log.Println("🔄 Shutting down gracefully...")
+		authUC.Shutdown()
+		log.Println("  ✅ Auth service stopped")
 
-	log.Printf("%s v%s shutdown complete", appName, version)
-}
+		scheduleUC.StopScheduler() // Detener scheduler
+		log.Println("  ✅ Scheduler stopped")
 
-func loadConfig() (*config.Config, error) {
-	cfg, err := config.Load(configFile)
-
-	if err != nil {
-		return nil, fmt.Errorf("error loading config file '%s': %w", configFile, err)
+		log.Println("✅ Shutdown complete")
 	}
-	log.Printf("Configuration loaded successfully")
-	log.Printf("- Server port: %s", cfg.Server.Port)
-	log.Printf("- Database path: %s", cfg.Database.Path)
-	log.Printf("- User agent: %s", cfg.Scraping.UserAgent)
-	log.Printf("- Request timeout: %ds", cfg.Scraping.Timeout)
-	log.Printf("- Max links: %d", cfg.Scraping.MaxLinks)
-	log.Printf("- Max images: %d", cfg.Scraping.MaxImages)
-	log.Printf("- Analytics enabled: %t", cfg.Features.EnableAnalytics)
-	log.Printf("- Caching enabled: %t", cfg.Features.EnableCaching)
-	log.Printf("- Authentication required: %t", cfg.Auth.RequireAuth)
-	log.Printf("- Default user role: %s", cfg.Auth.DefaultRole)
-	log.Printf("- Token duration: %d hours", cfg.Auth.TokenDuration)
-
-	return cfg, nil
-}
-
-func initializeDatabase(cfg *config.Config) (*database.SQLiteDB, error) {
-	dataDir := filepath.Dir(cfg.Database.Path)
-
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create data directory '%s': %w", dataDir, err)
-	}
-	db, err := database.NewSQLiteDB(cfg.Database.Path)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize SQLite database: %w", err)
-	}
-	log.Printf("Database initialized successfully at: %s", cfg.Database.Path)
-	return db, nil
 }

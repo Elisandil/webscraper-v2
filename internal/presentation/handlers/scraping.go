@@ -66,15 +66,14 @@ func (h *ScrapingHandler) Scrape(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccessResponse(w, "URL scraped successfully", result)
 }
 
-// Provosional GetResults, having pagination logic in the usecase
 func (h *ScrapingHandler) GetResults(w http.ResponseWriter, r *http.Request) {
-	// Verify if pagination parameters are present
+
 	if r.URL.Query().Get("page") != "" || r.URL.Query().Get("per_page") != "" {
 		h.GetResultsPaginated(w, r)
 		return
 	}
 	user := middleware.GetUserFromContext(r.Context())
-	// Check if user is authenticated
+
 	if user == nil {
 		response.SendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
@@ -91,6 +90,12 @@ func (h *ScrapingHandler) GetResults(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ScrapingHandler) GetResult(w http.ResponseWriter, r *http.Request) {
+	user := middleware.GetUserFromContext(r.Context())
+
+	if user == nil {
+		response.SendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
+		return
+	}
 	id, err := parseID(r)
 
 	if err != nil {
@@ -108,11 +113,22 @@ func (h *ScrapingHandler) GetResult(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, "Result not found", http.StatusNotFound, fmt.Sprintf("No result found with ID %d", id))
 		return
 	}
+	if result.UserID != user.ID {
+		response.SendErrorResponse(w, "Result not found", http.StatusNotFound, fmt.Sprintf("No result found with ID %d", id))
+		return
+	}
 	log.Printf("Retrieved result ID: %d (%s)", id, result.URL)
+
 	response.SendSuccessResponse(w, "Result retrieved successfully", result)
 }
 
 func (h *ScrapingHandler) DeleteResult(w http.ResponseWriter, r *http.Request) {
+	user := middleware.GetUserFromContext(r.Context())
+
+	if user == nil {
+		response.SendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
+		return
+	}
 	id, err := parseID(r)
 
 	if err != nil {
@@ -130,12 +146,17 @@ func (h *ScrapingHandler) DeleteResult(w http.ResponseWriter, r *http.Request) {
 		response.SendErrorResponse(w, "Result not found", http.StatusNotFound, fmt.Sprintf("No result found with ID %d", id))
 		return
 	}
+	if result.UserID != user.ID {
+		response.SendErrorResponse(w, "Result not found", http.StatusNotFound, fmt.Sprintf("No result found with ID %d", id))
+		return
+	}
 	if err := h.scrapingUseCase.DeleteResult(id); err != nil {
 		log.Printf("Error deleting result %d: %v", id, err)
 		response.SendErrorResponse(w, "Failed to delete result", http.StatusInternalServerError, err.Error())
 		return
 	}
-	log.Printf("Deleted result ID: %d (%s)", id, result.URL)
+	log.Printf("Deleted result ID: %d (%s) by user %s", id, result.URL, user.Username)
+
 	response.SendNoContent(w)
 }
 

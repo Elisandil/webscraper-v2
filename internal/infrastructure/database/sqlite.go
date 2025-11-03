@@ -2,6 +2,9 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
+	"path/filepath"
 
 	_ "modernc.org/sqlite"
 )
@@ -11,19 +14,30 @@ type SQLiteDB struct {
 }
 
 func NewSQLiteDB(dbPath string) (*SQLiteDB, error) {
-	db, err := sql.Open("sqlite", dbPath)
+	abs, err := filepath.Abs(dbPath)
 
+	if err != nil {
+		return nil, fmt.Errorf("ruta de DB inválida: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(abs), 0o755); err != nil {
+		return nil, fmt.Errorf("no se pudo crear la carpeta de la DB: %w", err)
+	}
+
+	db, err := sql.Open("sqlite", abs)
 	if err != nil {
 		return nil, err
 	}
 	if err := db.Ping(); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
-	sqliteDB := &SQLiteDB{DB: db}
 
+	sqliteDB := &SQLiteDB{DB: db}
 	if err := sqliteDB.createTables(); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
+
 	return sqliteDB, nil
 }
 

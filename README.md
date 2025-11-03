@@ -183,7 +183,11 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 
 ## Instalación y Uso
 
-1. **Configuración inicial**
+1. **Clonado y Configuración inicial**
+
+```bash
+git clone https://github.com/Elisandil/webscraper-v2
+```
    
 Copia y ajusta `config.yaml`:
 
@@ -223,7 +227,8 @@ auth:
    
 ```bash
 cd <ruta-del-proyecto>
-go mod tidy
+go run generate_secret.go
+# Copia el secreto generado en config.yaml
 go run main.go
 ```
 

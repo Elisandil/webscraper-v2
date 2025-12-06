@@ -1,0 +1,26 @@
+server:
+  port: "8080"
+
+database:
+  path: "./data/scraper.db"
+
+scraping:
+  user_agent: "WebScraper/1.0 (Enhanced Edition)"
+  timeout: 30
+  max_redirects: 10
+  extract_images: true
+  extract_favicon: true
+  extract_headers: true
+  max_links: 100
+  max_images: 50
+
+features:
+  enable_analytics: true
+  enable_caching: false
+  cache_duration: 3600
+
+auth:
+  require_auth: true
+  jwt_secret: "st3P3qv3EErzmhr9i4fWxtJuVyFGgpcQxeWxD5CfXR0="
+  token_duration_hours: 24
+  default_role: "user"  

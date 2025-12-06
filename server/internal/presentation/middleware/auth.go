@@ -83,38 +83,6 @@ func (m *JWTMiddleware) RequireRole(roles ...string) func(http.Handler) http.Han
 	}
 }
 
-func (m *JWTMiddleware) OptionalAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-
-		if authHeader == "" {
-			next.ServeHTTP(w, r)
-			return
-		}
-		tokenParts := strings.Split(authHeader, " ")
-
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			next.ServeHTTP(w, r)
-			return
-		}
-		tokenString := tokenParts[1]
-		claims, err := m.authUseCase.ValidateToken(tokenString)
-
-		if err != nil {
-			next.ServeHTTP(w, r)
-			return
-		}
-		user, err := m.authUseCase.GetUserByID(claims.UserID)
-
-		if err != nil || user == nil {
-			next.ServeHTTP(w, r)
-			return
-		}
-		ctx := context.WithValue(r.Context(), UserContextKey, user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 func (m *JWTMiddleware) sendUnauthorized(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)

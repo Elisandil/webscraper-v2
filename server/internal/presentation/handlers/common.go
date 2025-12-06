@@ -20,11 +20,10 @@ func NewCommonHandler(config *config.Config) *CommonHandler {
 
 func (h *CommonHandler) Health(w http.ResponseWriter, r *http.Request) {
 	health := map[string]interface{}{
-		"status":       "ok",
-		"timestamp":    time.Now().UTC().Format(time.RFC3339),
-		"service":      "webscraper",
-		"version":      "2.0",
-		"auth_enabled": h.config.Auth.RequireAuth,
+		"status":    "ok",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"service":   "webscraper",
+		"version":   "2.0",
 	}
 	response.SendSuccessResponse(w, "Service is healthy", health)
 }
@@ -32,8 +31,4 @@ func (h *CommonHandler) Health(w http.ResponseWriter, r *http.Request) {
 func (h *CommonHandler) NotFound(w http.ResponseWriter, r *http.Request) {
 	response.SendErrorResponse(w, "Endpoint not found", http.StatusNotFound,
 		fmt.Sprintf("The requested endpoint %s %s does not exist", r.Method, r.URL.Path))
-}
-
-func (h *CommonHandler) Index(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./interface/templates/index.html")
 }

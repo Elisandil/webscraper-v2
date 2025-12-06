@@ -20,6 +20,7 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
     - [Frontend hecho con React, usando componentes](#frontend-hecho-con-react-usando-componentes)
   - [Dependencias](#dependencias)
   - [Instalación y Uso](#instalación-y-uso)
+    - [Setup para nuevos desarrolladores](#setup-para-nuevos-desarrolladores)
   - [Endpoints de la API](#endpoints-de-la-api)
     - [Autenticación](#autenticación)
     - [Scraping](#scraping)
@@ -235,13 +236,29 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 
 ## Instalación y Uso
 
-1. **Clonado y Configuración inicial**
+### Setup para nuevos desarrolladores
+
+1. **Clonar el repositorio**
 
 ```bash
 git clone https://github.com/Elisandil/webscraper-v2
+cd webscraper-v2
 ```
-   
-Copia y ajusta `config.yaml`:
+
+2. **Configurar el backend**
+
+```bash
+cd server
+cp config.yaml.example config.yaml
+
+# Generar un JWT secret seguro
+openssl rand -base64 32
+
+# Editar config.yaml y pegar el secret generado en jwt_secret
+nano config.yaml
+```
+
+El archivo `config.yaml` debe tener esta estructura:
 
 ```yaml
 server:
@@ -251,7 +268,7 @@ database:
   path: "./data/scraper.db"
 
 scraping:
-  user_agent: "WebScraper/1.0"
+  user_agent: "WebScraper/1.0 (Enhanced Edition)"
   timeout: 30
   max_redirects: 10
   extract_images: true
@@ -267,34 +284,37 @@ features:
 
 auth:
   require_auth: true
-  jwt_secret: "tu_secreto_muy_seguro_aqui"
+  jwt_secret: "PEGAR_AQUI_EL_SECRET_GENERADO"
   token_duration_hours: 24
-  bcrypt_cost: 12
   default_role: "user"
 ```
 
-**NOTA:** La carpeta `data/` se crea automáticamente al inicializar.
+**IMPORTANTE:** 
+- El archivo `config.yaml` **NO** está en Git por seguridad
+- Siempre usa `config.yaml.example` como referencia
+- Genera un secret único para cada entorno
 
-2. **Levantar el backend**
-   
+3. **Instalar dependencias y levantar el backend**
+
 ```bash
-cd server
-go run generate_secret.go
-# Copia el secreto generado en config.yaml
-go run main.go
+go mod download
+
+go run main.go # creará data/ y scraper.db automáticamente
 ```
 
 El backend:
 - Lee la configuración desde `config.yaml`
-- Crea/actualiza `data/scraper.db` con tablas, índices y triggers
+- Crea automáticamente `data/scraper.db` con tablas, índices y triggers
 - Inicia el scheduler para tareas programadas
 - Sirve en `http://localhost:8080`
 
-3. **Levantar el frontend**
-   
+4. **Configurar y levantar el frontend**
+
 ```bash
 cd client
+
 pnpm install
+
 pnpm run dev
 ```
 

@@ -3,62 +3,10 @@ package persistence
 import (
 	"database/sql"
 	"fmt"
-	"sync"
 	"time"
 	"webscraper-v2/internal/domain/repository"
 	"webscraper-v2/internal/infrastructure/database"
 )
-
-type InMemoryTokenRepository struct {
-	blacklist map[string]time.Time
-	mu        sync.RWMutex
-}
-
-func NewInMemoryTokenRepository() repository.TokenRepository {
-	return &InMemoryTokenRepository{
-		blacklist: make(map[string]time.Time),
-	}
-}
-
-func (r *InMemoryTokenRepository) RevokeToken(token string, expiresAt time.Time) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.blacklist[token] = expiresAt
-	return nil
-}
-
-func (r *InMemoryTokenRepository) IsTokenRevoked(token string) (bool, error) {
-	r.mu.RLock()
-	expiry, exists := r.blacklist[token]
-	r.mu.RUnlock()
-
-	if !exists {
-		return false, nil
-	}
-
-	if time.Now().Before(expiry) {
-		return true, nil
-	}
-
-	r.mu.Lock()
-	delete(r.blacklist, token)
-	r.mu.Unlock()
-
-	return false, nil
-}
-
-func (r *InMemoryTokenRepository) CleanupExpiredTokens() error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	now := time.Now()
-	for token, expiry := range r.blacklist {
-		if now.After(expiry) {
-			delete(r.blacklist, token)
-		}
-	}
-	return nil
-}
 
 type SQLiteTokenRepository struct {
 	db *database.SQLiteDB

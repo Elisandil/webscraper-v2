@@ -61,8 +61,6 @@ func (rt *Router) SetupRoutes() *mux.Router {
 
 	rt.setupAdminRoutes()
 
-	rt.router.HandleFunc("/", rt.commonHandler.Index).Methods("GET")
-
 	return rt.router
 }
 
@@ -78,12 +76,8 @@ func (rt *Router) setupAuthRoutes() {
 
 func (rt *Router) setupAPIRoutes() {
 	api := rt.router.PathPrefix("/api").Subrouter()
+	api.Use(rt.jwtMiddleware.RequireAuth)
 
-	if rt.config.Auth.RequireAuth {
-		api.Use(rt.jwtMiddleware.RequireAuth)
-	} else {
-		api.Use(rt.jwtMiddleware.OptionalAuth)
-	}
 	scraping := api.PathPrefix("/scrape").Subrouter()
 	scraping.Use(rt.moderateLimiter.Limit)
 	scraping.HandleFunc("", rt.scrapingHandler.Scrape).Methods("POST")

@@ -6,6 +6,7 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
 
 ## Índice
 - [WebScraper App](#webscraper-app)
+  - [Índice](#índice)
   - [El Viaje de Aprendizaje](#el-viaje-de-aprendizaje)
   - [Lo que realmente aprendí](#lo-que-realmente-aprendí)
   - [Características](#características)
@@ -74,62 +75,111 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 
 ```
 /
-├── config.yaml                            # Configuración de servidor, BD, scraping y auth
-├── data/                                  # Base de datos SQLite (scraper.db)
-├── internal/
-│   ├── config/                            # Carga de configuración YAML
-│   ├── domain/
-│   │   ├── entity/                        # Modelos para la lógica del negocio
-│   │   │   ├── pagination.go                  # Entidades de paginación
-│   │   │   ├── schedule.go                    # Entidad Schedule y DTOs
-│   │   │   ├── scraping.go                    # Entidad ScrapingResult
-│   │   │   └── user.go                        # Entidad User y DTOs de auth
-│   │   └── repository/                    # Interfaces de repositorios
-│   │       ├── schedule.go                    # Interface ScheduleRepository
-│   │       ├── scraping.go                    # Interface ScrapingRepository
-│   │       └── user.go                        # Interface UserRepository
-│   ├── infrastructure/
-│   │   ├── database/                      # SQLite + migraciones automáticas
-│   │   │   └── sqlite.go                      # Conexión y creación de tablas
-│   │   └── persistence/                   # Implementación de repositorios
-│   │       ├── schedule_repository.go         # Repositorio de Schedule
-│   │       ├── scraping_repository.go         # Repositorio de Scraping
-│   │       └── user_repository.go             # Repositorio de User
-│   ├── usecase/                           # Lógica de negocio
-│   │   ├── auth.go                            # Casos de uso de autenticación
-│   │   ├── schedule.go                        # Casos de uso de programación
-│   │   └── scraping.go                        # Casos de uso de scraping
-│   └── presentation/
-│       ├── server/                        # Servidor HTTP principal
-│       │   └── server.go                      # Inicialización y configuración
-│       ├── routes/                        # Configuración centralizada de rutas
-│       │   └── routes.go                      # Setup de todas las rutas
-│       ├── handlers/                      # Controladores HTTP
-│       │   ├── auth.go                        # Handlers de autenticación
-│       │   ├── common.go                      # Handlers comunes (health, index)
-│       │   ├── schedule.go                    # Handlers de programación
-│       │   └── scraping.go                    # Handlers de scraping
-│       ├── middleware/                    # Middleware de la aplicación
-│       │   ├── auth.go                        # JWT, roles y autenticación
-│       │   └── common.go                      # Logging, CORS, content-type
-│       └── response/                      # Helpers para respuestas HTTP
-│           └── helpers.go                     # Respuestas estandarizadas
-├── main.go                                # Punto de entrada del backend
-├── go.mod, go.sum                         # Dependencias Go
-└── webscrapper-frontend/                  # Proyecto React + Tailwind
+├── README.md                              # Documentación del proyecto
+├── .gitignore                             # Archivos ignorados por Git
+├── assets/                                # Imágenes y recursos del README
+├── server/                                # Backend Go con Clean Architecture
+│   ├── config.yaml                        # Configuración de servidor, BD, scraping y auth
+│   ├── main.go                            # Punto de entrada del backend
+│   ├── generate_secret.go                 # Generador de secretos JWT
+│   ├── Makefile                           # Comandos de build y desarrollo
+│   ├── go.mod, go.sum                     # Dependencias Go
+│   ├── data/                              # Base de datos SQLite (scraper.db)
+│   ├── internal/
+│   │   ├── domain/
+│   │   │   ├── entity/                    # Modelos para la lógica del negocio
+│   │   │   │   ├── pagination.go          # Entidades de paginación
+│   │   │   │   ├── schedule.go            # Entidad Schedule y DTOs
+│   │   │   │   ├── scraping.go            # Entidad ScrapingResult
+│   │   │   │   └── user.go                # Entidad User y DTOs de auth
+│   │   │   └── repository/                # Interfaces de repositorios
+│   │   │       ├── schedule.go            # Interface ScheduleRepository
+│   │   │       ├── scraping.go            # Interface ScrapingRepository
+│   │   │       ├── token_repository.go    # Interface TokenRepository
+│   │   │       └── user.go                # Interface UserRepository
+│   │   ├── infrastructure/
+│   │   │   ├── config/                    # Carga de configuración YAML
+│   │   │   │   └── config.go              # Parser de config.yaml
+│   │   │   ├── database/                  # SQLite + migraciones automáticas
+│   │   │   │   └── sqlite.go              # Conexión y creación de tablas
+│   │   │   └── persistence/               # Implementación de repositorios
+│   │   │       ├── in_memory_token_repository.go  # Blacklist de tokens
+│   │   │       ├── schedule_repository.go         # Repositorio de Schedule
+│   │   │       ├── scraping_repository.go         # Repositorio de Scraping
+│   │   │       └── user_repository.go             # Repositorio de User
+│   │   ├── usecase/                       # Lógica de negocio
+│   │   │   ├── auth.go                    # Casos de uso de autenticación
+│   │   │   ├── schedule.go                # Casos de uso de programación
+│   │   │   └── scraping.go                # Casos de uso de scraping
+│   │   └── presentation/
+│   │       ├── server/                    # Servidor HTTP principal
+│   │       │   └── server.go              # Inicialización y configuración
+│   │       ├── routes/                    # Configuración centralizada de rutas
+│   │       │   └── routes.go              # Setup de todas las rutas
+│   │       ├── handlers/                  # Controladores HTTP
+│   │       │   ├── auth.go                # Handlers de autenticación
+│   │       │   ├── common.go              # Handlers comunes (health, index)
+│   │       │   ├── schedule.go            # Handlers de programación
+│   │       │   └── scraping.go            # Handlers de scraping
+│   │       ├── middleware/                # Middleware de la aplicación
+│   │       │   ├── auth.go                # JWT, roles y autenticación
+│   │       │   ├── common.go              # Logging, CORS, content-type
+│   │       │   └── rate_limiter.go        # Rate limiting por IP
+│   │       └── response/                  # Helpers para respuestas HTTP
+│   │           └── helpers.go             # Respuestas estandarizadas
+│   └── pkg/                               # Paquetes compartidos
+│       ├── crypto/                        # Utilidades de criptografía
+│       │   └── password.go                # Hash y validación de contraseñas
+│       ├── errors/                        # Errores personalizados
+│       │   └── errors.go                  # Tipos de error del dominio
+│       └── validator/                     # Validaciones
+│           └── validator.go               # Validador de entradas
+└── client/                                # Frontend React + Vite + Tailwind
+    ├── index.html                         # HTML principal
+    ├── package.json                       # Dependencias frontend
+    ├── pnpm-lock.yaml                     # Lockfile de pnpm
+    ├── vite.config.js                     # Configuración de Vite
+    ├── tailwind.config.js                 # Configuración de Tailwind CSS
+    ├── postcss.config.js                  # Configuración de PostCSS
+    ├── eslint.config.js                   # Configuración de ESLint
     ├── public/
-    ├── src/
-    │  ├── api/
-    │  ├── hooks/
-    │  └── components/
-    ├── package.json
-    └── tailwind.config.js
+    │   └── vite.svg                       # Logo de Vite
+    └── src/
+        ├── main.jsx                       # Punto de entrada del frontend
+        ├── App.jsx                        # Componente principal
+        ├── index.css                      # Estilos globales
+        ├── api/
+        │   └── client.js                  # Cliente HTTP para la API
+        ├── components/                    # Componentes React
+        │   ├── Alert.jsx                  # Sistema de alertas
+        │   ├── DetailModal.jsx            # Modal de detalles de scraping
+        │   ├── HealthIndicator.jsx        # Indicador de estado del servidor
+        │   ├── LoadingSpinner.jsx         # Spinner de carga
+        │   ├── LoginView.jsx              # Vista de login
+        │   ├── MainView.jsx               # Vista principal de la app
+        │   ├── PaginatedResultsList.jsx   # Lista de resultados con paginación
+        │   ├── Pagination.jsx             # Controles de paginación
+        │   ├── RegisterModal.jsx          # Modal de registro
+        │   ├── ResultsList.jsx            # Lista simple de resultados
+        │   ├── ScheduleList.jsx           # Lista de schedules
+        │   ├── ScheduleModal.jsx          # Modal para crear/editar schedules
+        │   ├── ScheduleSection.jsx        # Sección de schedules
+        │   └── ScrapeForm.jsx             # Formulario de scraping
+        ├── contexts/                      # Contextos de React
+        │   ├── index.jsx                  # Barrel export de contextos
+        │   ├── AlertContext.jsx           # Contexto de alertas
+        │   ├── AuthContext.jsx            # Contexto de autenticación
+        │   ├── ResultsContext.jsx         # Contexto de resultados
+        │   └── ScheduleContext.jsx        # Contexto de schedules
+        └── hooks/                         # Custom hooks
+            ├── usePagination.jsx          # Hook de paginación
+            └── useSchedules.js            # Hook de schedules
 ```
 
 ## Requisitos
 - Go ≥ 1.24
-- Node.js ≥ 16 y pnpm
-- SQLite
+- Node.js ≥ 18 y pnpm
+- SQLite (incluido vía `modernc.org/sqlite`, sin CGO)
 
 ## Arquitectura
 
@@ -178,8 +228,10 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 - `golang.org/x/crypto/bcrypt`: Hash seguro de contraseñas con cost configurable
 
 **Frontend**
-- `react, react-dom, react-scripts`: Framework React para interfaz de usuario
+- `react@^19.0.0, react-dom@^19.0.0`: Framework React para interfaz de usuario
+- `vite@^6.0.5`: Build tool y dev server ultrarrápido
 - `tailwindcss@^3.4.17`: Framework de utilidades CSS para diseño responsive
+- `@vitejs/plugin-react@^4.3.4`: Plugin oficial de React para Vite
 
 ## Instalación y Uso
 
@@ -226,7 +278,7 @@ auth:
 2. **Levantar el backend**
    
 ```bash
-cd <ruta-del-proyecto>
+cd server
 go run generate_secret.go
 # Copia el secreto generado en config.yaml
 go run main.go
@@ -241,14 +293,14 @@ El backend:
 3. **Levantar el frontend**
    
 ```bash
-cd webscrapper-frontend
+cd client
 pnpm install
-pnpm start
+pnpm run dev
 ```
 
 El frontend:
-- Usa proxy a `http://localhost:8080` (definido en `package.json`)
-- Abre automáticamente `http://localhost:3000`
+- Usa proxy a `http://localhost:8080` (configurado en `vite.config.js`)
+- Abre automáticamente `http://localhost:5173`
 
 ## Endpoints de la API
 
@@ -409,7 +461,7 @@ GET /api/health
 Verifica el estado del servicio y configuración de autenticación.
 
 ## Autoría
-Desarrollado por Antonio Ortega.
+Desarrollado por Antonio Ortega (aog-dev).
 
 ## Licencia
 Proyecto desarrollado con fines educativos/formativos.

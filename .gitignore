@@ -13,6 +13,9 @@
 .env.local
 .env.*.local
 
+# Configuration files with secrets
+server/config.yaml
+
 # Database files
 *scraper.db
 *.db

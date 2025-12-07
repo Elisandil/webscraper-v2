@@ -12,8 +12,8 @@ export default function Alert({ alert, onClose }) {
   
   const baseStyles = "fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 border";
   const typeStyles = alert.type === "success"
-    ? "bg-emerald-900/90 text-emerald-400 border-emerald-500/20"
-    : "bg-red-900/90 text-red-400 border-red-500/20";
+    ? "bg-teal-900/90 text-teal-400 border-teal-500/20 shadow-lg shadow-teal-500/20"
+    : "bg-red-900/90 text-red-400 border-red-500/20 shadow-lg shadow-red-500/20";
   
   return (
     <div className={`${baseStyles} ${typeStyles}`} role="alert">

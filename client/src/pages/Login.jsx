@@ -63,7 +63,7 @@ export default function LoginView() {
             onChange={(e) => setUsername(e.target.value)}
             required
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
             placeholder="Ingresa tu usuario"
           />
         </div>
@@ -79,7 +79,7 @@ export default function LoginView() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
             placeholder="Ingresa tu contraseña"
           />
         </div>
@@ -88,7 +88,7 @@ export default function LoginView() {
           type="submit"
           id="loginBtn"
           disabled={isLoading}
-          className="w-full py-3 bg-green-600/90 hover:bg-green-600 text-white font-medium rounded-lg transition-all duration-200 shadow-lg backdrop-blur-sm border border-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-cyan-500/30 backdrop-blur-sm border border-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
         </button>
@@ -98,7 +98,7 @@ export default function LoginView() {
           <button
             id="openRegisterBtn"
             type="button"
-            className="text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+            className="text-cyan-400 hover:text-cyan-300 hover:underline transition-colors"
           >
             Regístrate
           </button>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { apiRequest } from "../api/client";
-import { useAlert } from "../contexts/AlertContext";
-import { useSchedule } from "../contexts/ScheduleContext";
-import { useResults } from "../contexts/ResultsContext";
+import { apiRequest } from "../../../api/client";
+import { useAlert } from "../../../contexts/AlertContext";
+import { useSchedule } from "../../../contexts/ScheduleContext";
+import { useResults } from "../../../contexts/ResultsContext";
 
 export default function ScrapeForm() {
   const { showSuccess, showError } = useAlert();
@@ -67,7 +67,7 @@ export default function ScrapeForm() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://ejemplo.com"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
                 required
                 disabled={isLoading}
               />
@@ -76,7 +76,7 @@ export default function ScrapeForm() {
             <button
               type="submit"
               disabled={isLoading || !url.trim()}
-              className="px-8 py-3 bg-blue-600/90 hover:bg-blue-600 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg backdrop-blur-sm border border-blue-500/20"
+              className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-cyan-500/30 backdrop-blur-sm border border-cyan-500/20"
             >
               {isLoading ? (
                 <>
@@ -96,11 +96,11 @@ export default function ScrapeForm() {
 
           {/* Opción para crear schedule después de un scraping exitoso */}
           {showScheduleOption && (
-            <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg p-4 animate-pulse">
+            <div className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/20 rounded-lg p-4 animate-pulse">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
@@ -114,7 +114,7 @@ export default function ScrapeForm() {
                   <button
                     type="button"
                     onClick={handleCreateSchedule}
-                    className="px-4 py-2 bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg backdrop-blur-sm border border-blue-500/20"
+                    className="px-4 py-2 bg-cyan-600/90 hover:bg-cyan-600 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-cyan-500/20 backdrop-blur-sm border border-cyan-500/20"
                   >
                     Crear Schedule
                   </button>

@@ -1,7 +1,7 @@
 import React from "react";
-import { useSchedule } from "../contexts/ScheduleContext";
-import { useAlert } from "../contexts/AlertContext";
-import { apiRequest } from "../api/client";
+import { useSchedule } from "../../../contexts/ScheduleContext";
+import { useAlert } from "../../../contexts/AlertContext";
+import { apiRequest } from "../../../api/client";
 
 export default function ScheduleList({ onEdit }) {
   const { schedules, isLoading, refreshSchedules } = useSchedule();
@@ -57,7 +57,7 @@ export default function ScheduleList({ onEdit }) {
     return (
       <span
         className={`px-2 py-1 text-xs font-medium rounded-full ${active
-          ? "bg-green-500/20 text-green-400 border border-green-500/30"
+          ? "bg-teal-500/20 text-teal-400 border border-teal-500/30"
           : "bg-red-500/20 text-red-400 border border-red-500/30"
           }`}
       >
@@ -87,9 +87,9 @@ export default function ScheduleList({ onEdit }) {
 
     if (diff < 0) return { text: "Pendiente", color: "bg-orange-500/20 text-orange-400" };
     if (diff < 60000) return { text: "En breve", color: "bg-yellow-500/20 text-yellow-400" };
-    if (diff < 3600000) return { text: `${Math.floor(diff / 60000)}m`, color: "bg-blue-500/20 text-blue-400" };
-    if (diff < 86400000) return { text: `${Math.floor(diff / 3600000)}h`, color: "bg-blue-500/20 text-blue-400" };
-    return { text: `${Math.floor(diff / 86400000)}d`, color: "bg-blue-500/20 text-blue-400" };
+    if (diff < 3600000) return { text: `${Math.floor(diff / 60000)}m`, color: "bg-cyan-500/20 text-cyan-400" };
+    if (diff < 86400000) return { text: `${Math.floor(diff / 3600000)}h`, color: "bg-cyan-500/20 text-cyan-400" };
+    return { text: `${Math.floor(diff / 86400000)}d`, color: "bg-cyan-500/20 text-cyan-400" };
   };
 
   const cronToHuman = (cronExpr) => {
@@ -107,7 +107,7 @@ export default function ScheduleList({ onEdit }) {
     return (
       <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-6">
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
           <span className="ml-3 text-gray-300">Cargando schedules...</span>
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function ScheduleList({ onEdit }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-500/50"></div>
             <span className="text-sm text-gray-400">Scheduler activo</span>
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function ScheduleList({ onEdit }) {
                       {getStatusBadge(schedule.active)}
                     </div>
 
-                    <p className="text-blue-400 text-sm mb-3 truncate">
+                    <p className="text-cyan-400 text-sm mb-3 truncate">
                       {schedule.url}
                     </p>
 
@@ -184,7 +184,7 @@ export default function ScheduleList({ onEdit }) {
                         <div className="text-white">
                           {cronToHuman(schedule.cron_expression)}
                         </div>
-                        <code className="text-purple-400 font-mono text-xs">
+                        <code className="text-teal-400 font-mono text-xs">
                           {schedule.cron_expression}
                         </code>
                       </div>
@@ -222,8 +222,8 @@ export default function ScheduleList({ onEdit }) {
                     <button
                       onClick={() => toggleScheduleStatus(schedule)}
                       className={`p-2 rounded-lg transition-colors ${schedule.active
-                        ? "text-green-400 hover:text-green-300 hover:bg-green-400/10"
-                        : "text-gray-400 hover:text-green-400 hover:bg-green-400/10"
+                        ? "text-teal-400 hover:text-teal-300 hover:bg-teal-400/10"
+                        : "text-gray-400 hover:text-teal-400 hover:bg-teal-400/10"
                         }`}
                       title={schedule.active ? "Pausar schedule" : "Activar schedule"}
                     >

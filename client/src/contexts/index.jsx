@@ -3,6 +3,7 @@ import { AuthProvider } from './AuthContext';
 import { AlertProvider } from './AlertContext';
 import { ResultsProvider } from './ResultsContext';
 import { ScheduleProvider } from './ScheduleContext';
+import { ChatProvider } from './ChatContext';
 
 export function AppProviders({ children }) {
     return (
@@ -10,7 +11,9 @@ export function AppProviders({ children }) {
             <AlertProvider>
                 <ResultsProvider>
                     <ScheduleProvider>
-                        {children}
+                        <ChatProvider>
+                            {children}
+                        </ChatProvider>
                     </ScheduleProvider>
                 </ResultsProvider>
             </AlertProvider>

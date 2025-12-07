@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { apiRequest } from "../api/client";
-import { useAlert } from "../contexts/AlertContext";
+import { apiRequest } from "../../api/client";
+import { useAlert } from "../../contexts/AlertContext";
 
 export default function RegisterModal() {
   const { showSuccess, showError } = useAlert();
@@ -168,7 +168,7 @@ export default function RegisterModal() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-green-600/90 hover:bg-green-600 text-white font-medium rounded-lg transition-all duration-200 shadow-lg backdrop-blur-sm border border-green-500/20 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-cyan-500/30 backdrop-blur-sm border border-cyan-500/20 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "Registrando..." : "Registrarse"}
           </button>

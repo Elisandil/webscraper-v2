@@ -27,7 +27,7 @@ export default function DetailModal({ result, onClose }) {
   const safeContent = content ?? "";
 
   const date = new Date(created_at).toLocaleString();
-  const statusColor = status_code === 200 ? "text-green-400" : "text-red-400";
+  const statusColor = status_code === 200 ? "text-teal-400" : "text-red-400";
 
   return (
     <div
@@ -68,7 +68,7 @@ export default function DetailModal({ result, onClose }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
             <div>
               <span className="text-gray-400">URL:</span>
-              <p className="text-blue-400 break-all">{url}</p>
+              <p className="text-cyan-400 break-all">{url}</p>
             </div>
             <div>
               <span className="text-gray-400">Código de estado:</span>
@@ -133,7 +133,7 @@ export default function DetailModal({ result, onClose }) {
             <div className="max-h-40 overflow-y-auto text-sm space-y-2">
               {safeHeaders.map((h, i) => (
                 <div key={i}>
-                  <span className="text-purple-400 font-mono">H{h.level}:</span>{" "}
+                  <span className="text-teal-400 font-mono">H{h.level}:</span>{" "}
                   <span className="text-white">{h.text}</span>
                 </div>
               ))}
@@ -154,7 +154,7 @@ export default function DetailModal({ result, onClose }) {
                     href={link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 truncate block"
+                    className="text-cyan-400 hover:text-cyan-300 truncate block"
                   >
                     {link}
                   </a>
@@ -177,7 +177,7 @@ export default function DetailModal({ result, onClose }) {
                     href={img}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-green-400 hover:text-green-300 truncate block"
+                    className="text-teal-400 hover:text-teal-300 truncate block"
                   >
                     {img}
                   </a>

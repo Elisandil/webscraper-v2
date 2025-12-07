@@ -61,7 +61,7 @@ export default function Pagination({
               id="perPage"
               value={perPage}
               onChange={(e) => onPerPageChange(parseInt(e.target.value))}
-              className="bg-gray-800/90 border border-white/20 text-white text-sm rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="bg-gray-800/90 border border-white/20 text-white text-sm rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             >
               {perPageOptions.map((option) => (
                 <option key={option} value={option}>

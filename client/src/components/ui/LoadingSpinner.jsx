@@ -12,7 +12,7 @@ export default function LoadingSpinner({ size = "default", text = "Cargando..." 
       <div className="relative">
         <div className={`${sizeClasses[size]} animate-spin`}>
           <svg
-            className="w-full h-full text-blue-400"
+            className="w-full h-full text-cyan-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

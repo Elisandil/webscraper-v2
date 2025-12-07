@@ -1,5 +1,5 @@
 import React from "react";
-import { apiRequest } from "../api/client";
+import { apiRequest } from "../../../api/client";
 
 export default function ResultsList({ results, onView, onDelete }) {
   const handleDelete = async (id, e) => {
@@ -15,7 +15,7 @@ export default function ResultsList({ results, onView, onDelete }) {
   };
 
   const getStatusColor = (statusCode) => {
-    if (statusCode >= 200 && statusCode < 300) return "text-green-400";
+    if (statusCode >= 200 && statusCode < 300) return "text-teal-400";
     if (statusCode >= 400 && statusCode < 500) return "text-orange-400";
     if (statusCode >= 500) return "text-red-400";
     return "text-gray-400";
@@ -79,7 +79,7 @@ export default function ResultsList({ results, onView, onDelete }) {
                       <h3 className="text-lg font-semibold text-white mb-1 truncate">
                         {result.title || "Sin título"}
                       </h3>
-                      <p className="text-blue-400 text-sm mb-3 truncate">
+                      <p className="text-cyan-400 text-sm mb-3 truncate">
                         {result.url}
                       </p>
                       

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import ScrapeForm from "./ScrapeForm";
-import ResultsList from "./ResultsList";
-import PaginatedResultsList from "./PaginatedResultsList";
-import ScheduleSection from "./ScheduleSection";
-import DetailModal from "./DetailModal";
-import HealthIndicator from "./HealthIndicator";
+import ScrapeForm from "../components/features/scraping/ScrapeForm";
+import ResultsList from "../components/features/scraping/ResultsList";
+import PaginatedResultsList from "../components/features/scraping/PaginatedResultsList";
+import ScheduleSection from "../components/features/schedules/ScheduleSection";
+import DetailModal from "../components/modals/DetailModal";
+import HealthIndicator from "../components/ui/HealthIndicator";
+import ChatWidget from "../components/chat/ChatWidget";
 import { useAlert } from "../contexts/AlertContext";
 import { useResults } from "../contexts/ResultsContext";
 
@@ -33,7 +34,7 @@ export default function MainView({ handleLogout }) {
                 <span className="text-sm text-gray-400">Paginación:</span>
                 <button
                   onClick={handleTogglePagination}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${usePagination ? "bg-blue-600" : "bg-gray-600"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${usePagination ? "bg-cyan-600 shadow-lg shadow-cyan-500/30" : "bg-gray-600"
                     }`}
                   title={`${usePagination ? 'Desactivar' : 'Activar'} paginación`}
                 >
@@ -66,7 +67,7 @@ export default function MainView({ handleLogout }) {
             <button
               onClick={() => setActiveTab("scraping")}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "scraping"
-                ? "border-blue-500 text-blue-400"
+                ? "border-cyan-500 text-cyan-400"
                 : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
                 }`}
             >
@@ -80,7 +81,7 @@ export default function MainView({ handleLogout }) {
             <button
               onClick={() => setActiveTab("schedules")}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "schedules"
-                ? "border-blue-500 text-blue-400"
+                ? "border-cyan-500 text-cyan-400"
                 : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
                 }`}
             >
@@ -118,6 +119,9 @@ export default function MainView({ handleLogout }) {
 
         <DetailModal result={selected} onClose={() => setSelected(null)} />
       </div>
+
+      {/* Chat Widget Flotante */}
+      <ChatWidget />
     </div>
   );
 }

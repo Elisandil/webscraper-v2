@@ -46,11 +46,12 @@ func main() {
 	scrapingUC := usecase.NewScrapingUseCase(scrapingRepo, cfg)
 	authUC := usecase.NewAuthUseCase(userRepo, tokenRepo, cfg)
 	scheduleUC := usecase.NewScheduleUseCase(scheduleRepo, scrapingUC, cfg)
+	chatUC := usecase.NewChatUseCase(cfg)
 
 	log.Println("✅ Use cases initialized")
 
 	// Initialize server
-	srv := server.NewServer(cfg.Server.Port, cfg, scrapingUC, authUC, scheduleUC)
+	srv := server.NewServer(cfg.Server.Port, cfg, scrapingUC, authUC, scheduleUC, chatUC)
 
 	// Setup graceful shutdown
 	shutdownChan := make(chan os.Signal, 1)

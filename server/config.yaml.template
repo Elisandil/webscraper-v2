@@ -24,3 +24,9 @@ auth:
   jwt_secret: ""  # REQUIRED: Generate with: openssl rand -base64 32
   token_duration_hours: 24
   default_role: "user"
+
+# Chat assistant configuration (optional)
+# Uncomment and configure to enable AI-powered chat assistant
+# chat:
+#   hf_api_token: ""  # Optional: HuggingFace API token for better rate limits
+#   hf_model_id: "google/flan-t5-small"  # Model to use (default: flan-t5-small)

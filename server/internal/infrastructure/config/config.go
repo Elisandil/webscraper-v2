@@ -14,6 +14,7 @@ type Config struct {
 	Scraping ScrapingConfig `yaml:"scraping"`
 	Features FeaturesConfig `yaml:"features"`
 	Auth     AuthConfig     `yaml:"auth"`
+	Chat     *ChatConfig    `yaml:"chat,omitempty"`
 }
 
 type ServerConfig struct {
@@ -47,6 +48,11 @@ type AuthConfig struct {
 	BCryptCost    int    `yaml:"bcrypt_cost"`
 	RequireAuth   bool   `yaml:"require_auth"`
 	DefaultRole   string `yaml:"default_role"`
+}
+
+type ChatConfig struct {
+	HFAPIToken string `yaml:"hf_api_token"`
+	HFModelID  string `yaml:"hf_model_id"`
 }
 
 func Load(path string) (*Config, error) {

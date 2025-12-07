@@ -29,23 +29,23 @@ func NewServer(
 	scrapingUC *usecase.ScrapingUseCase,
 	authUC *usecase.AuthUseCase,
 	scheduleUC *usecase.ScheduleUseCase,
+	chatUC *usecase.ChatUseCase,
 ) *Server {
-	// Initialize middleware
 	jwtMiddleware := middleware.NewJWTMiddleware(authUC)
 
-	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authUC)
 	scrapingHandler := handlers.NewScrapingHandler(scrapingUC)
 	scheduleHandler := handlers.NewScheduleHandler(scheduleUC)
+	chatHandler := handlers.NewChatHandler(chatUC, scrapingUC, scheduleUC)
 	commonHandler := handlers.NewCommonHandler(cfg)
 
-	// Initialize router
 	routerManager := routes.NewRouter(
 		cfg,
 		jwtMiddleware,
 		authHandler,
 		scrapingHandler,
 		scheduleHandler,
+		chatHandler,
 		commonHandler,
 	)
 
@@ -58,13 +58,10 @@ func NewServer(
 }
 
 func (s *Server) Start() error {
-	// Start the scheduler
 	s.scheduleUC.StartScheduler()
 
-	// Log available endpoints
 	s.logEndpoints()
 
-	// Initialize HTTP server
 	s.httpServer = &http.Server{
 		Addr:    ":" + s.port,
 		Handler: s.router,

@@ -213,9 +213,6 @@ func (r *scrapingRepository) Delete(id int64) error {
 	return nil
 }
 
-// Temporary methods for pagination
-// ------------------------------------------------------------------------------------------------------
-
 func (r *scrapingRepository) FindAllByUserIDPaginated(userID int64, pagination *entity.PaginationRequest) ([]*entity.ScrapingResult, int64, error) {
 	totalCount, err := r.CountByUserID(userID)
 
@@ -256,7 +253,6 @@ func (r *scrapingRepository) FindAllByUserIDPaginated(userID int64, pagination *
 		if err != nil {
 			return nil, 0, fmt.Errorf("error scanning row: %w", err)
 		}
-		// Unmarshal JSON fields
 		if err := r.unmarshalJSONField(linksJSON, &result.Links); err != nil {
 			result.Links = []string{}
 		}
@@ -290,8 +286,6 @@ func (r *scrapingRepository) CountByUserID(userID int64) (int64, error) {
 	}
 	return count, nil
 }
-
-// -------------------------------------------------------------------------------------------------------
 
 func (r *scrapingRepository) unmarshalJSONField(jsonStr string, target interface{}) error {
 

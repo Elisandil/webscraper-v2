@@ -164,3 +164,7 @@ func NewModerateRateLimiter() *RateLimiter {
 func NewGeneralRateLimiter() *RateLimiter {
 	return NewRateLimiter(1, 60)
 }
+
+func NewPublicRateLimiter() *RateLimiter {
+	return NewRateLimiter(3.0/60.0, 3)
+}

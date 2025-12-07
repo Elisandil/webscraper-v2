@@ -51,6 +51,28 @@ func (h *ScrapingHandler) Scrape(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccessResponse(w, "URL scraped successfully", result)
 }
 
+func (h *ScrapingHandler) PublicScrape(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		URL string `json:"url"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.SendErrorResponse(w, "Invalid JSON format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	log.Printf("Public scraping URL: %s", req.URL)
+	result, err := h.scrapingUseCase.ScrapeURL(req.URL, 0)
+
+	if err != nil {
+		log.Printf("Error scraping URL %s: %v", req.URL, err)
+		response.SendErrorResponse(w, "Failed to scrape URL", http.StatusInternalServerError, err.Error())
+		return
+	}
+	log.Printf("Successfully scraped URL publicly: %s (Status: %d, Words: %d)", req.URL, result.StatusCode, result.WordCount)
+	response.SendSuccessResponse(w, "URL scraped successfully", result)
+}
+
 func (h *ScrapingHandler) GetResults(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Query().Get("page") != "" || r.URL.Query().Get("per_page") != "" {
@@ -145,9 +167,6 @@ func (h *ScrapingHandler) DeleteResult(w http.ResponseWriter, r *http.Request) {
 	response.SendNoContent(w)
 }
 
-// Handler for paginated results
-//-------------------------------------------------------------------------------------------------------
-
 func (h *ScrapingHandler) GetResultsPaginated(w http.ResponseWriter, r *http.Request) {
 	user := middleware.GetUserFromContext(r.Context())
 
@@ -187,8 +206,6 @@ func (h *ScrapingHandler) GetResultsPaginated(w http.ResponseWriter, r *http.Req
 
 	response.SendSuccessResponse(w, "Results retrieved successfully", paginatedResults)
 }
-
-//--------------------------------------------------------------------------------------------------------
 
 func parseID(r *http.Request) (int64, error) {
 	return strconv.ParseInt(mux.Vars(r)["id"], 10, 64)

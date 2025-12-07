@@ -16,7 +16,6 @@ type SuccessResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// SendErrorResponse sends a standardized error response
 func SendErrorResponse(w http.ResponseWriter, message string, statusCode int, details string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
@@ -28,7 +27,6 @@ func SendErrorResponse(w http.ResponseWriter, message string, statusCode int, de
 	json.NewEncoder(w).Encode(response)
 }
 
-// SendSuccessResponse sends a standardized success response
 func SendSuccessResponse(w http.ResponseWriter, message string, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	response := SuccessResponse{
@@ -38,7 +36,6 @@ func SendSuccessResponse(w http.ResponseWriter, message string, data interface{}
 	json.NewEncoder(w).Encode(response)
 }
 
-// SendNoContent sends a 204 No Content response
 func SendNoContent(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNoContent)
 }

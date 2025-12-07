@@ -225,8 +225,6 @@ func (uc *ScheduleUseCase) GetSchedulerStatus() map[string]interface{} {
 	}
 }
 
-// --- Internal helper methods ---
-
 func (uc *ScheduleUseCase) loadActiveSchedulesUnsafe() error {
 	schedules, err := uc.scheduleRepo.FindActiveSchedules()
 	if err != nil {
@@ -343,8 +341,6 @@ func (uc *ScheduleUseCase) calculateNextRun(cronExpr string) (time.Time, error) 
 	}
 	return schedule.Next(time.Now()), nil
 }
-
-// --- Validation methods ---
 
 func (uc *ScheduleUseCase) validateScheduleRequest(req *entity.CreateScheduleRequest) error {
 

@@ -16,10 +16,12 @@ type Router struct {
 	authHandler     *handlers.AuthHandler
 	scrapingHandler *handlers.ScrapingHandler
 	scheduleHandler *handlers.ScheduleHandler
+	chatHandler     *handlers.ChatHandler
 	commonHandler   *handlers.CommonHandler
 	strictLimiter   *middleware.RateLimiter
 	moderateLimiter *middleware.RateLimiter
 	generalLimiter  *middleware.RateLimiter
+	publicLimiter   *middleware.RateLimiter
 }
 
 func NewRouter(
@@ -28,6 +30,7 @@ func NewRouter(
 	authHandler *handlers.AuthHandler,
 	scrapingHandler *handlers.ScrapingHandler,
 	scheduleHandler *handlers.ScheduleHandler,
+	chatHandler *handlers.ChatHandler,
 	commonHandler *handlers.CommonHandler,
 ) *Router {
 	return &Router{
@@ -37,10 +40,12 @@ func NewRouter(
 		authHandler:     authHandler,
 		scrapingHandler: scrapingHandler,
 		scheduleHandler: scheduleHandler,
+		chatHandler:     chatHandler,
 		commonHandler:   commonHandler,
 		strictLimiter:   middleware.NewStrictRateLimiter(),
 		moderateLimiter: middleware.NewModerateRateLimiter(),
 		generalLimiter:  middleware.NewGeneralRateLimiter(),
+		publicLimiter:   middleware.NewPublicRateLimiter(),
 	}
 }
 
@@ -56,6 +61,8 @@ func (rt *Router) SetupRoutes() *mux.Router {
 		http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/"))),
 	)
 	rt.setupAuthRoutes()
+
+	rt.setupPublicRoutes()
 
 	rt.setupAPIRoutes()
 
@@ -74,6 +81,13 @@ func (rt *Router) setupAuthRoutes() {
 	auth.HandleFunc("/logout", rt.authHandler.Logout).Methods("POST")
 }
 
+func (rt *Router) setupPublicRoutes() {
+	public := rt.router.PathPrefix("/api/public").Subrouter()
+	public.Use(rt.publicLimiter.Limit)
+
+	public.HandleFunc("/scrape", rt.scrapingHandler.PublicScrape).Methods("POST")
+}
+
 func (rt *Router) setupAPIRoutes() {
 	api := rt.router.PathPrefix("/api").Subrouter()
 	api.Use(rt.jwtMiddleware.RequireAuth)
@@ -84,14 +98,17 @@ func (rt *Router) setupAPIRoutes() {
 
 	api.HandleFunc("/results", rt.scrapingHandler.GetResults).Methods("GET")
 	api.HandleFunc("/results/{id:[0-9]+}", rt.scrapingHandler.GetResult).Methods("GET")
-	api.HandleFunc("/results/{id:[0-9]+}", rt.scrapingHandler.DeleteResult).Methods("DELETE")
-
 	api.HandleFunc("/schedules", rt.scheduleHandler.Create).Methods("POST")
 	api.HandleFunc("/schedules", rt.scheduleHandler.GetAll).Methods("GET")
 	api.HandleFunc("/schedules/{id:[0-9]+}", rt.scheduleHandler.GetByID).Methods("GET")
 	api.HandleFunc("/schedules/{id:[0-9]+}", rt.scheduleHandler.Update).Methods("PUT")
 	api.HandleFunc("/schedules/{id:[0-9]+}", rt.scheduleHandler.Delete).Methods("DELETE")
 
+	api.HandleFunc("/chat/parse", rt.chatHandler.ParseMessage).Methods("POST")
+	api.HandleFunc("/chat/execute", rt.chatHandler.ExecuteAction).Methods("POST")
+
+	api.HandleFunc("/profile", rt.authHandler.Profile).Methods("GET")
+	api.HandleFunc("/health", rt.commonHandler.Health).Methods("GET")
 	api.HandleFunc("/profile", rt.authHandler.Profile).Methods("GET")
 	api.HandleFunc("/health", rt.commonHandler.Health).Methods("GET")
 

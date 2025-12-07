@@ -266,8 +266,6 @@ func (uc *AuthUseCase) cleanupExpiredTokens() {
 	}
 }
 
-// --- Validation Methods ---
-
 func (uc *AuthUseCase) validateRegisterRequest(req *entity.RegisterRequest) error {
 
 	if err := uc.validator.ValidateStruct(req, "registration request"); err != nil {

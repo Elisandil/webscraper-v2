@@ -131,8 +131,6 @@ func (uc *ScrapingUseCase) GetAllResultsPaginated(userID int64, page, perPage in
 	}, nil
 }
 
-// --- Extraction Helpers ---
-
 func (uc *ScrapingUseCase) extractMetadata(n *html.Node, result *entity.ScrapingResult) {
 	uc.traverseNode(n, func(node *html.Node) {
 		if node.Type == html.ElementNode {

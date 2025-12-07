@@ -37,7 +37,6 @@ export default function ScrapeForm() {
         showError(data.error || "Error al scrapear la URL");
       }
     } catch (error) {
-      console.error("Error:", error);
       showError("Error de conexión");
     } finally {
       setIsLoading(false);
@@ -94,7 +93,6 @@ export default function ScrapeForm() {
             </button>
           </div>
 
-          {/* Opción para crear schedule después de un scraping exitoso */}
           {showScheduleOption && (
             <div className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/20 rounded-lg p-4 animate-pulse">
               <div className="flex items-center justify-between">

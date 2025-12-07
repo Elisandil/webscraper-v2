@@ -18,7 +18,6 @@ export function useSchedules() {
       }
     } catch (err) {
       setError('Error de conexión al cargar schedules');
-      console.error('Error loading schedules:', err);
     } finally {
       setIsLoading(false);
     }
@@ -37,13 +36,12 @@ export function useSchedules() {
       });
 
       if (ok) {
-        await loadSchedules(); // Recargar la lista
+        await loadSchedules();
         return { success: true, data: data.data };
       } else {
         return { success: false, error: data.error || 'Error al crear el schedule' };
       }
     } catch (err) {
-      console.error('Error creating schedule:', err);
       return { success: false, error: 'Error de conexión al crear el schedule' };
     }
   }, [loadSchedules]);
@@ -61,13 +59,12 @@ export function useSchedules() {
       });
 
       if (ok) {
-        await loadSchedules(); // Recargar la lista
+        await loadSchedules();
         return { success: true, data: data.data };
       } else {
         return { success: false, error: data.error || 'Error al actualizar el schedule' };
       }
     } catch (err) {
-      console.error('Error updating schedule:', err);
       return { success: false, error: 'Error de conexión al actualizar el schedule' };
     }
   }, [loadSchedules]);
@@ -79,13 +76,12 @@ export function useSchedules() {
       });
 
       if (ok) {
-        await loadSchedules(); // Recargar la lista
+        await loadSchedules();
         return { success: true };
       } else {
         return { success: false, error: data.error || 'Error al eliminar el schedule' };
       }
     } catch (err) {
-      console.error('Error deleting schedule:', err);
       return { success: false, error: 'Error de conexión al eliminar el schedule' };
     }
   }, [loadSchedules]);
@@ -99,17 +95,14 @@ export function useSchedules() {
         return { success: false, error: data.error || 'Error al obtener el schedule' };
       }
     } catch (err) {
-      console.error('Error getting schedule:', err);
       return { success: false, error: 'Error de conexión al obtener el schedule' };
     }
   }, []);
 
-  // Cargar schedules al montar el componente
   useEffect(() => {
     loadSchedules();
   }, [loadSchedules]);
 
-  // Escuchar eventos de recarga
   useEffect(() => {
     const handleReload = () => {
       loadSchedules();

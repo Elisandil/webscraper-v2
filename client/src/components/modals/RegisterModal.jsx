@@ -26,7 +26,6 @@ export default function RegisterModal() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validations
     if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
       showError("Por favor completa todos los campos");
       return;
@@ -60,7 +59,6 @@ export default function RegisterModal() {
         showError(data.error || "Error al registrar usuario");
       }
     } catch (error) {
-      console.error("Error:", error);
       showError("Error de conexión");
     } finally {
       setIsLoading(false);

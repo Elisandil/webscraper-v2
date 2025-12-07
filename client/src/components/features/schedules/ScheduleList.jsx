@@ -26,7 +26,6 @@ export default function ScheduleList({ onEdit }) {
         showError(data.error || "Error al cambiar estado");
       }
     } catch (error) {
-      console.error("Error toggling schedule:", error);
       showError("Error de conexión");
     }
   };
@@ -48,7 +47,6 @@ export default function ScheduleList({ onEdit }) {
         showError(data.error || "Error al eliminar schedule");
       }
     } catch (error) {
-      console.error("Error deleting schedule:", error);
       showError("Error de conexión");
     }
   };
@@ -218,7 +216,6 @@ export default function ScheduleList({ onEdit }) {
                   </div>
 
                   <div className="ml-4 flex-shrink-0 flex items-center gap-2">
-                    {/* Botón de toggle activo/inactivo */}
                     <button
                       onClick={() => toggleScheduleStatus(schedule)}
                       className={`p-2 rounded-lg transition-colors ${schedule.active
@@ -238,7 +235,6 @@ export default function ScheduleList({ onEdit }) {
                       )}
                     </button>
 
-                    {/* Botón de editar */}
                     <button
                       onClick={() => onEdit && onEdit(schedule)}
                       className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
@@ -259,7 +255,6 @@ export default function ScheduleList({ onEdit }) {
                       </svg>
                     </button>
 
-                    {/* Botón de eliminar */}
                     <button
                       onClick={() => deleteSchedule(schedule)}
                       className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"

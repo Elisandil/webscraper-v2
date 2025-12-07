@@ -7,11 +7,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is authenticated on mount
   useEffect(() => {
     const token = localStorage.getItem('jwtToken');
     if (token) {
-      // Verify token is valid by making a request
       apiRequest('/results')
         .then(({ ok }) => {
           if (ok) {

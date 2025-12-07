@@ -28,7 +28,6 @@ export default function MainView({ handleLogout }) {
           <h1 className="text-3xl font-bold text-gray-100">WebScraper 1.0</h1>
 
           <div className="flex items-center space-x-4">
-            {/* Toggle para paginación (solo visible en tab scraping) */}
             {activeTab === "scraping" && (
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-gray-400">Paginación:</span>
@@ -61,7 +60,6 @@ export default function MainView({ handleLogout }) {
           </div>
         </header>
 
-        {/* Navegación por pestañas */}
         <div className="mb-8">
           <nav className="flex space-x-8 border-b border-white/20">
             <button
@@ -95,12 +93,10 @@ export default function MainView({ handleLogout }) {
           </nav>
         </div>
 
-        {/* Contenido según la pestaña activa */}
         {activeTab === "scraping" ? (
           <>
             <ScrapeForm />
 
-            {/* Renderizar lista según el modo */}
             {usePagination ? (
               <PaginatedResultsList onView={(r) => setSelected(r)} />
             ) : (
@@ -120,7 +116,6 @@ export default function MainView({ handleLogout }) {
         <DetailModal result={selected} onClose={() => setSelected(null)} />
       </div>
 
-      {/* Chat Widget Flotante */}
       <ChatWidget />
     </div>
   );

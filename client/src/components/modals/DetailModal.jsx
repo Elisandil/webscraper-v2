@@ -60,7 +60,6 @@ export default function DetailModal({ result, onClose }) {
           Detalles del Scraping
         </h3>
 
-        {/* Información Básica */}
         <div className="bg-white/5 rounded-lg p-4 mb-6">
           <h4 className="text-lg font-semibold text-white mb-3">
             Información Básica
@@ -93,7 +92,6 @@ export default function DetailModal({ result, onClose }) {
           </div>
         </div>
 
-        {/* Metadatos */}
         <div className="bg-white/5 rounded-lg p-4 mb-6">
           <h4 className="text-lg font-semibold text-white mb-3">Metadatos</h4>
           <div className="space-y-2 text-sm text-gray-300">
@@ -124,7 +122,6 @@ export default function DetailModal({ result, onClose }) {
           </div>
         </div>
 
-        {/* Cabeceras */}
         {safeHeaders.length > 0 && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
             <h4 className="text-lg font-semibold text-white mb-3">
@@ -141,7 +138,6 @@ export default function DetailModal({ result, onClose }) {
           </div>
         )}
 
-        {/* Links */}
         {safeLinks.length > 0 && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
             <h4 className="text-lg font-semibold text-white mb-3">
@@ -164,7 +160,6 @@ export default function DetailModal({ result, onClose }) {
           </div>
         )}
 
-        {/* Imágenes */}
         {safeImages.length > 0 && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
             <h4 className="text-lg font-semibold text-white mb-3">
@@ -187,7 +182,6 @@ export default function DetailModal({ result, onClose }) {
           </div>
         )}
 
-        {/* Vista previa de contenido */}
         {safeContent && (
           <div className="bg-white/5 rounded-lg p-4 mb-6">
             <h4 className="text-lg font-semibold text-white mb-3">

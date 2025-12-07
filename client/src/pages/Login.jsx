@@ -31,7 +31,6 @@ export default function LoginView() {
         showError(data.error || "Credenciales inválidas");
       }
     } catch (error) {
-      console.error("Error:", error);
       showError("Error de conexión");
     } finally {
       setIsLoading(false);

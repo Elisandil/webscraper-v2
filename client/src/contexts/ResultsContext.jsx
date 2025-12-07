@@ -8,14 +8,11 @@ export function ResultsProvider({ children }) {
     const [results, setResults] = useState([]);
     const [selected, setSelected] = useState(null);
     const [usePagination, setUsePagination] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const { isAuthenticated } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-    // Load results (for non-paginated mode)
-    const loadResults = useCallback(async () => {
-        if (!isAuthenticated) return; // Don't load if not authenticated
-
-        setIsLoading(true);
+  const loadResults = useCallback(async () => {
+    if (!isAuthenticated) return;        setIsLoading(true);
         try {
             const { ok, data } = await apiRequest('/results');
             if (ok) {

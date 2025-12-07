@@ -71,7 +71,6 @@ export default function ScheduleModal() {
         showError(data.error || "Error al procesar el schedule");
       }
     } catch (error) {
-      console.error("Error submitting schedule:", error);
       showError("Error de conexión");
     } finally {
       setIsLoading(false);
@@ -97,7 +96,6 @@ export default function ScheduleModal() {
         showError(data.error || "Error al eliminar el schedule");
       }
     } catch (error) {
-      console.error("Error deleting schedule:", error);
       showError("Error de conexión");
     } finally {
       setIsLoading(false);

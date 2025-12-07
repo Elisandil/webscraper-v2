@@ -9,11 +9,10 @@ export function ScheduleProvider({ children }) {
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [prefilledUrl, setPrefilledUrl] = useState(null);
     const [schedules, setSchedules] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const { isAuthenticated } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-    // Load schedules
-    const loadSchedules = useCallback(async () => {
+  const loadSchedules = useCallback(async () => {
         if (!isAuthenticated) return;
 
         setIsLoading(true);

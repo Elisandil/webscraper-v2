@@ -45,7 +45,6 @@ export default function Landing({ onGetStarted }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      {/* Navigation */}
       <nav className="container mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
@@ -63,7 +62,6 @@ export default function Landing({ onGetStarted }) {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="container mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-teal-400 to-green-400 text-transparent bg-clip-text">
@@ -74,7 +72,6 @@ export default function Landing({ onGetStarted }) {
             plataforma potente y fácil de usar.
           </p>
 
-          {/* Try Free Form */}
           <div className="max-w-2xl mx-auto mb-8">
             <form onSubmit={handleTryFree} className="flex flex-col sm:flex-row gap-4">
               <input
@@ -128,13 +125,11 @@ export default function Landing({ onGetStarted }) {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="container mx-auto px-6 py-20">
         <h2 className="text-4xl font-bold text-center mb-16">
           Características Principales
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Feature 1 */}
           <div className="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 hover:border-cyan-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20">
             <div className="w-14 h-14 bg-cyan-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/30">
               <svg
@@ -158,7 +153,6 @@ export default function Landing({ onGetStarted }) {
             </p>
           </div>
 
-          {/* Feature 2 */}
           <div className="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 hover:border-teal-500 transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/20">
             <div className="w-14 h-14 bg-teal-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-teal-500/30">
               <svg
@@ -182,7 +176,6 @@ export default function Landing({ onGetStarted }) {
             </p>
           </div>
 
-          {/* Feature 3 */}
           <div className="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 hover:border-green-500 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20">
             <div className="w-14 h-14 bg-green-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-green-500/30">
               <svg

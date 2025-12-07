@@ -96,7 +96,6 @@ export const usePagination = (initialPage = 1, initialPerPage = 10) => {
     fetchResults(currentPage, perPage);
   }, [fetchResults, currentPage, perPage]);
 
-  // Fetch results when page or perPage changes
   useEffect(() => {
     fetchResults(currentPage, perPage);
   }, [currentPage, perPage, fetchResults]);
@@ -107,23 +106,16 @@ export const usePagination = (initialPage = 1, initialPerPage = 10) => {
   const endItem = totalItems === 0 ? 0 : Math.min(currentPage * perPage, totalItems);
 
   return {
-    // Data
     results,
     pagination,
     loading,
     error,
-    
-    // Current state
     currentPage,
     perPage,
-    
-    // Actions
     handlePageChange,
     handlePerPageChange,
     handleDelete,
     refresh,
-    
-    // Computed values
     hasNext: pagination.has_next && currentPage < totalPages,
     hasPrev: pagination.has_prev && currentPage > 1,
     totalItems,

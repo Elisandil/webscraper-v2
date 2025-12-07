@@ -1,6 +1,6 @@
 # WebScraper App
 
-Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links, imágenes y contenido de páginas web, con Go en el backend y React + Tailwind CSS en el frontend. Incluye autenticación JWT completa, programación de tareas con cron y almacenamiento de resultados por usuario en SQLite.
+Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links, imágenes y contenido de páginas web, con Go en el backend y React + Tailwind CSS en el frontend. Incluye autenticación JWT completa, programación de tareas con cron, almacenamiento de resultados por usuario en SQLite y un **asistente de chat con IA** que permite crear scraping mediante lenguaje natural.
 
 
 
@@ -17,7 +17,7 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
     - [Infrastructure Layer](#infrastructure-layer)
     - [Use Case Layer](#use-case-layer)
     - [Presentation Layer](#presentation-layer)
-    - [Frontend hecho con React, usando componentes](#frontend-hecho-con-react-usando-componentes)
+    - [Frontend Layer](#frontend-layer)
   - [Dependencias](#dependencias)
   - [Instalación y Uso](#instalación-y-uso)
     - [Setup para nuevos desarrolladores](#setup-para-nuevos-desarrolladores)
@@ -25,6 +25,7 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
     - [Autenticación](#autenticación)
     - [Scraping](#scraping)
     - [Programación](#programación)
+    - [Chat con IA](#chat-con-ia)
     - [Administración](#administración)
     - [Otros](#otros)
   - [Flujo de Uso](#flujo-de-uso)
@@ -51,24 +52,34 @@ Tras investigar ambos frameworks y sacar mis conclusiones:
 
 Al final me decanté por React. A pesar de no estar muy bien implementados en el proyecto, comprendí los beneficios de usar hooks para cambiar los estados y ciclos de vida de los componentes.
 
+Con el tiempo, el proyecto siguió evolucionando. Implementé una arquitectura de componentes más organizada, separando la lógica en páginas, features y componentes UI reutilizables. La integración del Chat Assistant con IA mediante HuggingFace fue un nuevo desafío: procesar lenguaje natural, interpretar intenciones y ejecutar acciones automáticamente. Esto me introdujo en el mundo del NLP (Procesamiento de Lenguaje Natural) y cómo las APIs de IA pueden mejorar la experiencia de usuario.
+
 ## Lo que realmente aprendí
 Más allá de las tecnologías, este proyecto me enseñó:
 
-Perseverancia técnica: Cuando algo no funciona, hay que seguir iterando, e iterando, e iterando, etc ....
-Arquitectura pensada: No es solo hacer que funcione, sino que funcione bien.
-Toma de decisiones: Evaluar tecnologías y elegir la más adecuada.
-Evolución gradual: Un proyecto puede crecer y transformarse completamente.
+**Perseverancia técnica:** Cuando algo no funciona, hay que seguir iterando, e iterando, e iterando, etc ....
+
+**Arquitectura pensada:** No es solo hacer que funcione, sino que funcione bien y sea mantenible.
+
+**Toma de decisiones:** Evaluar tecnologías y elegir la más adecuada según el contexto y objetivos.
+
+**Evolución gradual:** Un proyecto puede crecer y transformarse completamente sin perder su esencia.
+
+**Integración de IA:** Cómo las APIs de procesamiento de lenguaje natural pueden mejorar significativamente la UX.
 
 
 ## Características
 - **Clean Architecture** (Domain, Use Cases, Infrastructure, Presentation)
-- **Interfaz web** hecha con React + Tailwind CSS
+- **Interfaz web moderna** con React 19 + Tailwind CSS y arquitectura basada en páginas
+- **🤖 Chat Assistant con IA** - Programa scraping mediante lenguaje natural usando HuggingFace
+- **Sistema de contextos React** - Gestión de estado global con Context API
 - **Persistencia SQLite** sin CGO con migraciones automáticas
 - **Configuración** mediante archivo YAML
 - **API REST** completa para operaciones CRUD
 - **Autenticación JWT** con roles, refresh tokens y logout seguro
 - **Scraping programado** con expresiones cron y gestión de jobs
 - **Paginación** de resultados de scraping
+- **Rate limiting** por IP para protección de endpoints
 - **Middleware** de logging, CORS y control de acceso
 - **Extracción completa** de metadatos, links, imágenes y contenido
 
@@ -89,6 +100,7 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 │   ├── internal/
 │   │   ├── domain/
 │   │   │   ├── entity/                    # Modelos para la lógica del negocio
+│   │   │   │   ├── chat.go                # Entidades de chat y NLP (IA)
 │   │   │   │   ├── pagination.go          # Entidades de paginación
 │   │   │   │   ├── schedule.go            # Entidad Schedule y DTOs
 │   │   │   │   ├── scraping.go            # Entidad ScrapingResult
@@ -110,6 +122,7 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 │   │   │       └── user_repository.go             # Repositorio de User
 │   │   ├── usecase/                       # Lógica de negocio
 │   │   │   ├── auth.go                    # Casos de uso de autenticación
+│   │   │   ├── chat.go                    # Casos de uso de chat con IA (HuggingFace)
 │   │   │   ├── schedule.go                # Casos de uso de programación
 │   │   │   └── scraping.go                # Casos de uso de scraping
 │   │   └── presentation/
@@ -119,6 +132,7 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 │   │       │   └── routes.go              # Setup de todas las rutas
 │   │       ├── handlers/                  # Controladores HTTP
 │   │       │   ├── auth.go                # Handlers de autenticación
+│   │       │   ├── chat.go                # Handlers de chat con IA
 │   │       │   ├── common.go              # Handlers comunes (health, index)
 │   │       │   ├── schedule.go            # Handlers de programación
 │   │       │   └── scraping.go            # Handlers de scraping
@@ -147,29 +161,45 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
     │   └── vite.svg                       # Logo de Vite
     └── src/
         ├── main.jsx                       # Punto de entrada del frontend
-        ├── App.jsx                        # Componente principal
+        ├── App.jsx                        # Componente principal con routing
         ├── index.css                      # Estilos globales
         ├── api/
         │   └── client.js                  # Cliente HTTP para la API
-        ├── components/                    # Componentes React
-        │   ├── Alert.jsx                  # Sistema de alertas
-        │   ├── DetailModal.jsx            # Modal de detalles de scraping
-        │   ├── HealthIndicator.jsx        # Indicador de estado del servidor
-        │   ├── LoadingSpinner.jsx         # Spinner de carga
-        │   ├── LoginView.jsx              # Vista de login
-        │   ├── MainView.jsx               # Vista principal de la app
-        │   ├── PaginatedResultsList.jsx   # Lista de resultados con paginación
-        │   ├── Pagination.jsx             # Controles de paginación
-        │   ├── RegisterModal.jsx          # Modal de registro
-        │   ├── ResultsList.jsx            # Lista simple de resultados
-        │   ├── ScheduleList.jsx           # Lista de schedules
-        │   ├── ScheduleModal.jsx          # Modal para crear/editar schedules
-        │   ├── ScheduleSection.jsx        # Sección de schedules
-        │   └── ScrapeForm.jsx             # Formulario de scraping
-        ├── contexts/                      # Contextos de React
+        ├── pages/                         # Páginas principales de la app
+        │   ├── index.js                   # Barrel export de páginas
+        │   ├── Dashboard.jsx              # Dashboard principal con scraping
+        │   ├── Landing.jsx                # Página de bienvenida
+        │   └── Login.jsx                  # Página de login/registro
+        ├── components/                    # Componentes React organizados
+        │   ├── chat/                      # Componentes de chat con IA
+        │   │   ├── ChatMessage.jsx        # Mensaje individual del chat
+        │   │   └── ChatWidget.jsx         # Widget flotante de chat
+        │   ├── features/                  # Componentes de funcionalidades
+        │   │   ├── schedules/             # Módulo de programación
+        │   │   │   ├── index.js           # Barrel export
+        │   │   │   ├── ScheduleList.jsx   # Lista de schedules
+        │   │   │   └── ScheduleSection.jsx # Sección de schedules
+        │   │   └── scraping/              # Módulo de scraping
+        │   │       ├── index.js           # Barrel export
+        │   │       ├── PaginatedResultsList.jsx # Lista con paginación
+        │   │       ├── ResultsList.jsx    # Lista simple de resultados
+        │   │       └── ScrapeForm.jsx     # Formulario de scraping
+        │   ├── modals/                    # Modales reutilizables
+        │   │   ├── index.js               # Barrel export
+        │   │   ├── DetailModal.jsx        # Modal de detalles de scraping
+        │   │   ├── RegisterModal.jsx      # Modal de registro
+        │   │   └── ScheduleModal.jsx      # Modal para crear/editar schedules
+        │   └── ui/                        # Componentes UI base
+        │       ├── index.js               # Barrel export
+        │       ├── Alert.jsx              # Sistema de alertas
+        │       ├── HealthIndicator.jsx    # Indicador de estado del servidor
+        │       ├── LoadingSpinner.jsx     # Spinner de carga
+        │       └── Pagination.jsx         # Controles de paginación
+        ├── contexts/                      # Contextos de React (Estado global)
         │   ├── index.jsx                  # Barrel export de contextos
         │   ├── AlertContext.jsx           # Contexto de alertas
         │   ├── AuthContext.jsx            # Contexto de autenticación
+        │   ├── ChatContext.jsx            # Contexto de chat con IA
         │   ├── ResultsContext.jsx         # Contexto de resultados
         │   └── ScheduleContext.jsx        # Contexto de schedules
         └── hooks/                         # Custom hooks
@@ -179,12 +209,14 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 
 ## Requisitos
 - Go ≥ 1.24
-- Node.js ≥ 18 y pnpm
+- Node.js ≥ 18 y pnpm ≥ 10.24
 - SQLite (incluido vía `modernc.org/sqlite`, sin CGO)
+- API Token de HuggingFace (opcional, para funcionalidad de chat con IA)
 
 ## Arquitectura
 
 ### Domain Layer
+- `entity/chat.go`: Entidades para chat con IA (ChatRequest, ChatIntent, ChatResponse, ChatConfirmation)
 - `entity/pagination.go`: Entidades para paginación de resultados
 - `entity/schedule.go`: Entidad Schedule con DTOs de creación y actualización
 - `entity/scraping.go`: Entidad ScrapingResult con headers estructurados
@@ -201,6 +233,7 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 
 ### Use Case Layer
 - `usecase/auth.go`: Lógica completa de autenticación con JWT, refresh tokens, blacklist y limpieza automática
+- `usecase/chat.go`: Lógica de chat con IA usando HuggingFace para interpretación de lenguaje natural y ejecución de acciones
 - `usecase/schedule.go`: Lógica de programación con cron jobs, gestión de scheduler y ejecución automática
 - `usecase/scraping.go`: Lógica de negocio para scraping con paginación
 
@@ -208,31 +241,44 @@ Evolución gradual: Un proyecto puede crecer y transformarse completamente.
 - `presentation/server/server.go`: Servidor HTTP con inicialización de todos los componentes
 - `presentation/routes/routes.go`: Configuración centralizada de rutas con middleware aplicado por grupos
 - `presentation/handlers/auth.go`: Controladores HTTP para registro, login, logout, refresh y perfil
+- `presentation/handlers/chat.go`: Controladores HTTP para chat con IA (parse y execute)
 - `presentation/handlers/common.go`: Controladores HTTP para health check, index y 404
 - `presentation/handlers/schedule.go`: Controladores HTTP para CRUD completo de programación
 - `presentation/handlers/scraping.go`: Controladores HTTP para scraping y gestión de resultados con paginación
 - `presentation/middleware/auth.go`: Middleware JWT con soporte para roles, autenticación opcional y blacklist
 - `presentation/middleware/common.go`: Middleware de logging, CORS y content-type
+- `presentation/middleware/rate_limiter.go`: Rate limiting por IP con configuración por endpoint
 - `presentation/response/helpers.go`: Helpers para respuestas HTTP estandarizadas
 
-### Frontend hecho con React, usando componentes
+### Frontend Layer
+**Arquitectura basada en páginas y componentes modulares:**
+- `pages/`: Páginas principales (Landing, Login, Dashboard) con routing
+- `components/chat/`: Widget de chat con IA para crear scraping y schedules mediante lenguaje natural
+- `components/features/`: Módulos de funcionalidades (scraping, schedules) organizados por dominio
+- `components/modals/`: Modales reutilizables para detalles, registro y programación
+- `components/ui/`: Componentes base de interfaz (alerts, loading, pagination)
+- `contexts/`: Context API para gestión de estado global (Auth, Chat, Results, Schedules, Alerts)
+- `hooks/`: Custom hooks para lógica reutilizable (usePagination, useSchedules)
 
 ## Dependencias
 
-**Backend (Go)**
-- `github.com/robfig/cron/v3`: Programación de tareas con expresiones cron y soporte para segundos
-- `github.com/gorilla/mux`: Router HTTP con soporte para variables de ruta y middleware
-- `golang.org/x/net`: Parsing HTML y herramientas de red para scraping
-- `gopkg.in/yaml.v3`: Configuración YAML con unmarshaling automático
-- `modernc.org/sqlite`: Driver SQLite sin CGO con rendimiento optimizado
-- `github.com/golang-jwt/jwt/v5`: Generación, validación y parsing de tokens JWT
-- `golang.org/x/crypto/bcrypt`: Hash seguro de contraseñas con cost configurable
+**Backend (Go 1.24.3)**
+- `github.com/robfig/cron/v3@v3.0.1`: Programación de tareas con expresiones cron y soporte para segundos
+- `github.com/gorilla/mux@v1.8.1`: Router HTTP con soporte para variables de ruta y middleware
+- `golang.org/x/net@v0.41.0`: Parsing HTML y herramientas de red para scraping
+- `golang.org/x/time@v0.14.0`: Rate limiting y time utilities
+- `gopkg.in/yaml.v3@v3.0.1`: Configuración YAML con unmarshaling automático
+- `modernc.org/sqlite@v1.37.1`: Driver SQLite sin CGO con rendimiento optimizado
+- `github.com/golang-jwt/jwt/v5@v5.2.2`: Generación, validación y parsing de tokens JWT
+- `golang.org/x/crypto@v0.39.0`: Hash seguro de contraseñas con bcrypt
 
-**Frontend**
-- `react@^19.0.0, react-dom@^19.0.0`: Framework React para interfaz de usuario
-- `vite@^6.0.5`: Build tool y dev server ultrarrápido
-- `tailwindcss@^3.4.17`: Framework de utilidades CSS para diseño responsive
-- `@vitejs/plugin-react@^4.3.4`: Plugin oficial de React para Vite
+**Frontend (React 19 + Vite 7)**
+- `react@^19.2.0, react-dom@^19.2.0`: Framework React última versión para interfaz de usuario
+- `vite@^7.2.4`: Build tool y dev server ultrarrápido de nueva generación
+- `tailwindcss@^3.4.18`: Framework de utilidades CSS para diseño responsive
+- `@vitejs/plugin-react@^5.1.1`: Plugin oficial de React para Vite con Fast Refresh
+- `eslint@^9.39.1`: Linter para calidad de código JavaScript/JSX
+- `autoprefixer@^10.4.22`: PostCSS plugin para prefijos CSS automáticos
 
 ## Instalación y Uso
 
@@ -287,12 +333,17 @@ auth:
   jwt_secret: "PEGAR_AQUI_EL_SECRET_GENERADO"
   token_duration_hours: 24
   default_role: "user"
+
+chat:
+  hf_api_token: "YOUR_HUGGINGFACE_API_TOKEN"  # Opcional: Para funcionalidad de chat con IA
+  hf_model_id: "google/flan-t5-small"         # Modelo de HuggingFace a usar
 ```
 
 **IMPORTANTE:** 
 - El archivo `config.yaml` **NO** está en Git por seguridad
-- Siempre usa `config.yaml.example` como referencia
+- Siempre usa `config.yaml.template` como referencia
 - Genera un secret único para cada entorno
+- La funcionalidad de chat con IA requiere un token de HuggingFace (obtenerlo en https://huggingface.co/settings/tokens)
 
 3. **Instalar dependencias y levantar el backend**
 
@@ -343,6 +394,10 @@ El frontend:
 - `GET /api/schedules/{id}` - Obtener tarea específica
 - `PUT /api/schedules/{id}` - Actualizar tarea programada
 - `DELETE /api/schedules/{id}` - Eliminar tarea programada
+
+### Chat con IA
+- `POST /api/chat/parse` - Interpretar mensaje en lenguaje natural y detectar intención
+- `POST /api/chat/execute` - Ejecutar acción detectada (crear scraping o schedule)
 
 ### Administración
 - `GET /api/admin/*` - Endpoints administrativos (requieren rol "admin")
@@ -456,14 +511,58 @@ Content-Type: application/json
 
 La tarea se ejecutará automáticamente según la expresión cron (diariamente a las 9:00).
 
-5. **Detalles y eliminación**
+5. **Chat con IA - Crear scraping con lenguaje natural**
+   
+```bash
+POST /api/chat/parse
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "message": "Escanea https://ejemplo.com cada día a las 9 de la mañana"
+}
+```
+
+El asistente de IA interpreta el mensaje y responde con la intención detectada:
+
+```json
+{
+  "message": "Entendido. Quieres programar un scraping de https://ejemplo.com diariamente a las 9:00.",
+  "intent": {
+    "action": "create_schedule",
+    "url": "https://ejemplo.com",
+    "frequency": "daily",
+    "cron_expr": "0 0 9 * * *",
+    "confidence": 0.95
+  },
+  "needs_confirm": true,
+  "action": "schedule"
+}
+```
+
+Luego confirmas y ejecutas la acción:
+
+```bash
+POST /api/chat/execute
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "confirmed": true,
+  "intent_id": "..."
+}
+```
+
+El sistema crea automáticamente el schedule sin necesidad de especificar manualmente los campos.
+
+6. **Detalles y eliminación**
    
 - `GET /api/results/{id}` - Ver detalles completos
 - `DELETE /api/results/{id}` - Eliminar resultado
 
 ![Scraping Modal](assets/MainView.png)
 
-6. **Logout seguro**
+7. **Logout seguro**
    
 ```bash
 POST /api/auth/logout
@@ -472,7 +571,7 @@ Authorization: Bearer <token>
 
 Revoca el token añadiéndolo a la blacklist hasta su expiración natural.
 
-7. **Health check**
+8. **Health check**
    
 ```bash
 GET /api/health

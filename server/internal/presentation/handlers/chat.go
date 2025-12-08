@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 	"webscraper-v2/internal/domain/entity"
 	"webscraper-v2/internal/presentation/middleware"
 	"webscraper-v2/internal/presentation/response"
@@ -97,7 +99,10 @@ func (h *ChatHandler) executeScrapeNow(w http.ResponseWriter, userID int64, inte
 		return
 	}
 
-	result, err := h.scrapingUseCase.ScrapeURL(intent.URL, userID)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	result, err := h.scrapingUseCase.ScrapeURL(ctx, intent.URL, userID)
 	if err != nil {
 		log.Printf("Error scraping URL %s: %v", intent.URL, err)
 		response.SendErrorResponse(w, "Failed to scrape URL", http.StatusInternalServerError, err.Error())

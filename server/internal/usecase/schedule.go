@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"log"
 	"strings"
 	"sync"
@@ -318,7 +319,10 @@ func (uc *ScheduleUseCase) executeScheduleByID(scheduleID int64, scheduleName, s
 	}
 
 	now := time.Now()
-	_, err = uc.scrapingUC.ScrapeURL(schedule.URL, schedule.UserID)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	_, err = uc.scrapingUC.ScrapeURL(ctx, schedule.URL, schedule.UserID)
 	if err != nil {
 		log.Printf("❌ Error executing scheduled scraping %d: %v", scheduleID, err)
 	} else {

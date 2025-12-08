@@ -41,7 +41,7 @@ func (h *ScrapingHandler) Scrape(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Scraping URL: %s", req.URL)
-	result, err := h.scrapingUseCase.ScrapeURL(req.URL, user.ID)
+	result, err := h.scrapingUseCase.ScrapeURL(r.Context(), req.URL, user.ID)
 
 	if err != nil {
 		log.Printf("Error scraping URL %s: %v", req.URL, err)
@@ -63,7 +63,7 @@ func (h *ScrapingHandler) PublicScrape(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Public scraping URL: %s", req.URL)
-	result, err := h.scrapingUseCase.ScrapeURL(req.URL, 0)
+	result, err := h.scrapingUseCase.ScrapeURL(r.Context(), req.URL, 0)
 
 	if err != nil {
 		log.Printf("Error scraping URL %s: %v", req.URL, err)

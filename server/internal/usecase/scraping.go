@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -35,7 +36,7 @@ func NewScrapingUseCase(repo repository.ScrapingRepository, cfg *config.Config) 
 	}
 }
 
-func (uc *ScrapingUseCase) ScrapeURL(targetURL string, userID int64) (*entity.ScrapingResult, error) {
+func (uc *ScrapingUseCase) ScrapeURL(ctx context.Context, targetURL string, userID int64) (*entity.ScrapingResult, error) {
 
 	if err := uc.validator.ValidateURL(targetURL); err != nil {
 		return nil, pkgerrors.ValidationError(err.Error())
@@ -43,7 +44,8 @@ func (uc *ScrapingUseCase) ScrapeURL(targetURL string, userID int64) (*entity.Sc
 
 	startTime := time.Now()
 
-	req, err := http.NewRequest("GET", targetURL, nil)
+	// Usar contexto para permitir cancelación
+	req, err := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
 	if err != nil {
 		return nil, pkgerrors.InternalError("failed to create request", err)
 	}
@@ -82,7 +84,7 @@ func (uc *ScrapingUseCase) ScrapeURL(targetURL string, userID int64) (*entity.Sc
 	uc.extractLinks(doc, result, targetURL)
 	uc.extractImages(doc, result, targetURL)
 	uc.extractHeaders(doc, result)
-	uc.extractFavicon(targetURL, result)
+	uc.extractFavicon(ctx, targetURL, result)
 	uc.calculateWordCount(string(body), result)
 	if err := uc.repo.Save(result); err != nil {
 		return nil, pkgerrors.DatabaseError("save scraping result", err)
@@ -272,7 +274,7 @@ func (uc *ScrapingUseCase) extractHeaders(n *html.Node, result *entity.ScrapingR
 	})
 }
 
-func (uc *ScrapingUseCase) extractFavicon(targetURL string, result *entity.ScrapingResult) {
+func (uc *ScrapingUseCase) extractFavicon(ctx context.Context, targetURL string, result *entity.ScrapingResult) {
 	parsedURL, err := url.Parse(targetURL)
 	if err != nil {
 		return
@@ -285,19 +287,28 @@ func (uc *ScrapingUseCase) extractFavicon(targetURL string, result *entity.Scrap
 	}
 
 	for _, faviconURL := range faviconURLs {
-		if uc.checkURLExists(faviconURL) {
+		if uc.checkURLExists(ctx, faviconURL) {
 			result.Favicon = faviconURL
 			break
 		}
 	}
 }
 
-func (uc *ScrapingUseCase) checkURLExists(url string) bool {
+func (uc *ScrapingUseCase) checkURLExists(ctx context.Context, url string) bool {
+	// Crear contexto con timeout específico para favicon check
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "HEAD", url, nil)
+	if err != nil {
+		return false
+	}
+
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
-	resp, err := client.Head(url)
+	resp, err := client.Do(req)
 	if err != nil {
 		return false
 	}

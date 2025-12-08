@@ -30,7 +30,17 @@ export function AuthProvider({ children }) {
     setUser(true);
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const token = localStorage.getItem('jwtToken');
+    if (token) {
+      try {
+        await apiRequest('/auth/logout', {
+          method: 'POST',
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }
     localStorage.removeItem('jwtToken');
     setUser(null);
   }, []);

@@ -99,20 +99,50 @@ func (uc *ScrapingUseCase) GetAllResults(userID int64) ([]*entity.ScrapingResult
 	return results, nil
 }
 
-func (uc *ScrapingUseCase) GetResult(id int64) (*entity.ScrapingResult, error) {
+func (uc *ScrapingUseCase) GetResult(id int64, userID int64) (*entity.ScrapingResult, error) {
 	result, err := uc.repo.FindByID(id)
 	if err != nil {
 		return nil, pkgerrors.DatabaseError("get result", err)
 	}
+
+	if result == nil {
+		return nil, pkgerrors.NotFoundError("result")
+	}
+
+	if result.UserID != userID {
+		return nil, pkgerrors.New(
+			pkgerrors.CodeAuthorization,
+			"unauthorized: user does not own this result",
+			pkgerrors.ErrUnauthorized,
+		)
+	}
+
 	return result, nil
 }
 
-func (uc *ScrapingUseCase) DeleteResult(id int64) error {
+func (uc *ScrapingUseCase) DeleteResult(id int64, userID int64) error {
+	result, err := uc.repo.FindByID(id)
+	if err != nil {
+		return pkgerrors.DatabaseError("get result for deletion", err)
+	}
+	if result == nil {
+		return pkgerrors.NotFoundError("result")
+	}
+
+	if result.UserID != userID {
+		return pkgerrors.New(
+			pkgerrors.CodeAuthorization,
+			"unauthorized: user does not own this result",
+			pkgerrors.ErrUnauthorized,
+		)
+	}
 
 	if err := uc.repo.Delete(id); err != nil {
 		return pkgerrors.DatabaseError("delete result", err)
 	}
+
 	return nil
+
 }
 
 func (uc *ScrapingUseCase) GetAllResultsPaginated(userID int64, page, perPage int) (*entity.PaginatedScrapingResults, error) {

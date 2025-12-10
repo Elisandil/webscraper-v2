@@ -19,6 +19,7 @@ type Server struct {
 	port       string
 	config     *config.Config
 	router     *mux.Router
+	routerMgr  *routes.Router
 	scheduleUC *usecase.ScheduleUseCase
 	httpServer *http.Server
 }
@@ -53,6 +54,7 @@ func NewServer(
 		port:       port,
 		config:     cfg,
 		router:     routerManager.SetupRoutes(),
+		routerMgr:  routerManager,
 		scheduleUC: scheduleUC,
 	}
 }
@@ -81,6 +83,10 @@ func (s *Server) Shutdown(ctx context.Context) error {
 		}
 	}
 	log.Println("✅ HTTP server stopped")
+
+	s.routerMgr.Shutdown()
+	log.Println("✅ Rate limiters stopped")
+
 	return nil
 }
 

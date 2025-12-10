@@ -49,6 +49,13 @@ func NewRouter(
 	}
 }
 
+func (rt *Router) Shutdown() {
+	rt.strictLimiter.Shutdown()
+	rt.moderateLimiter.Shutdown()
+	rt.generalLimiter.Shutdown()
+	rt.publicLimiter.Shutdown()
+}
+
 func (rt *Router) SetupRoutes() *mux.Router {
 	rt.router.Use(
 		middleware.LoggingMiddleware,

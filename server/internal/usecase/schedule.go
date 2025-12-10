@@ -77,7 +77,7 @@ func (uc *ScheduleUseCase) CreateSchedule(req *entity.CreateScheduleRequest, use
 	if uc.isStarted && schedule.Active {
 		uc.mu.RUnlock()
 		uc.mu.Lock()
-		if err := uc.addJobToCron(schedule); err != nil {
+		if err := uc.addJobToCronUnsafe(schedule); err != nil {
 			log.Printf("Warning: Could not add job to cron for schedule %d: %v", schedule.ID, err)
 		}
 		uc.mu.Unlock()

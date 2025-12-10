@@ -1,4 +1,4 @@
-package crypto
+package errors
 
 import (
 	"errors"

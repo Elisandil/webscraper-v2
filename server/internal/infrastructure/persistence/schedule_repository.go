@@ -7,6 +7,7 @@ import (
 	"webscraper-v2/internal/domain/entity"
 	"webscraper-v2/internal/domain/repository"
 	"webscraper-v2/internal/infrastructure/database"
+	"webscraper-v2/pkg/datetime"
 )
 
 type scheduleRepository struct {
@@ -172,53 +173,36 @@ func (r *scheduleRepository) parseTimestamps(schedule *entity.Schedule, lastRun,
 	var err error
 
 	if lastRun.Valid {
-		t, err := r.parseDateTime(lastRun.String)
+		t, err := datetime.ParseNullable(lastRun.String)
 
 		if err != nil {
 			return fmt.Errorf("error parsing last_run: %w", err)
 		}
-		schedule.LastRun = &t
+		schedule.LastRun = t
 	}
 
 	if nextRun.Valid {
-		t, err := r.parseDateTime(nextRun.String)
+		t, err := datetime.ParseNullable(nextRun.String)
 
 		if err != nil {
 			return fmt.Errorf("error parsing next_run: %w", err)
 		}
-		schedule.NextRun = &t
+		schedule.NextRun = t
 	}
 
 	if createdAt.Valid {
-		schedule.CreatedAt, err = r.parseDateTime(createdAt.String)
+		schedule.CreatedAt, err = datetime.Parse(createdAt.String)
 		if err != nil {
 			return fmt.Errorf("error parsing created_at: %w", err)
 		}
 	}
 
 	if updatedAt.Valid {
-		schedule.UpdatedAt, err = r.parseDateTime(updatedAt.String)
+		schedule.UpdatedAt, err = datetime.Parse(updatedAt.String)
 		if err != nil {
 			return fmt.Errorf("error parsing updated_at: %w", err)
 		}
 	}
 
 	return nil
-}
-
-func (r *scheduleRepository) parseDateTime(dateStr string) (time.Time, error) {
-	formats := []string{
-		time.RFC3339,
-		"2006-01-02T15:04:05Z",
-		"2006-01-02T15:04:05",
-		"2006-01-02 15:04:05",
-		time.DateTime,
-	}
-
-	for _, format := range formats {
-		if t, err := time.Parse(format, dateStr); err == nil {
-			return t, nil
-		}
-	}
-	return time.Time{}, fmt.Errorf("unable to parse datetime: %s", dateStr)
 }

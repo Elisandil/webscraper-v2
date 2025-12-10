@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"time"
 	"webscraper-v2/internal/domain/entity"
 	"webscraper-v2/internal/domain/repository"
 	"webscraper-v2/internal/infrastructure/database"
+	"webscraper-v2/pkg/datetime"
 )
 
 type scrapingRepository struct {
@@ -94,7 +94,7 @@ func (r *scrapingRepository) FindAll() ([]*entity.ScrapingResult, error) {
 		if err := r.unmarshalJSONField(headersJSON, &result.Headers); err != nil {
 			result.Headers = []entity.Header{}
 		}
-		result.CreatedAt, err = r.parseDateTime(createdAt)
+		result.CreatedAt, err = datetime.Parse(createdAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("error parsing created_at: %w", err)
@@ -148,7 +148,7 @@ func (r *scrapingRepository) FindAllByUserID(userID int64) ([]*entity.ScrapingRe
 		if err := r.unmarshalJSONField(headersJSON, &result.Headers); err != nil {
 			result.Headers = []entity.Header{}
 		}
-		result.CreatedAt, err = r.parseDateTime(createdAt)
+		result.CreatedAt, err = datetime.Parse(createdAt)
 
 		if err != nil {
 			return nil, fmt.Errorf("error parsing created_at: %w", err)
@@ -195,7 +195,7 @@ func (r *scrapingRepository) FindByID(id int64) (*entity.ScrapingResult, error) 
 	if err := r.unmarshalJSONField(headersJSON, &result.Headers); err != nil {
 		result.Headers = []entity.Header{}
 	}
-	result.CreatedAt, err = r.parseDateTime(createdAt)
+	result.CreatedAt, err = datetime.Parse(createdAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("error parsing created_at: %w", err)
@@ -262,7 +262,7 @@ func (r *scrapingRepository) FindAllByUserIDPaginated(userID int64, pagination *
 		if err := r.unmarshalJSONField(headersJSON, &result.Headers); err != nil {
 			result.Headers = []entity.Header{}
 		}
-		result.CreatedAt, err = r.parseDateTime(createdAt)
+		result.CreatedAt, err = datetime.Parse(createdAt)
 
 		if err != nil {
 			return nil, 0, fmt.Errorf("error parsing created_at: %w", err)
@@ -293,22 +293,4 @@ func (r *scrapingRepository) unmarshalJSONField(jsonStr string, target interface
 		return fmt.Errorf("empty json string")
 	}
 	return json.Unmarshal([]byte(jsonStr), target)
-}
-
-func (r *scrapingRepository) parseDateTime(dateStr string) (time.Time, error) {
-	formats := []string{
-		time.RFC3339,
-		"2006-01-02T15:04:05Z",
-		"2006-01-02T15:04:05",
-		"2006-01-02 15:04:05",
-		time.DateTime,
-	}
-
-	for _, format := range formats {
-
-		if t, err := time.Parse(format, dateStr); err == nil {
-			return t, nil
-		}
-	}
-	return time.Time{}, fmt.Errorf("unable to parse datetime: %s", dateStr)
 }

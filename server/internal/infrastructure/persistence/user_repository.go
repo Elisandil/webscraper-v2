@@ -7,6 +7,7 @@ import (
 	"webscraper-v2/internal/domain/entity"
 	"webscraper-v2/internal/domain/repository"
 	"webscraper-v2/internal/infrastructure/database"
+	"webscraper-v2/pkg/datetime"
 )
 
 type userRepository struct {
@@ -57,12 +58,12 @@ func (r *userRepository) FindByUsername(username string) (*entity.User, error) {
 		}
 		return nil, fmt.Errorf("error finding user by username: %w", err)
 	}
-	user.CreatedAt, err = r.parseDateTime(createdAt)
+	user.CreatedAt, err = datetime.Parse(createdAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("error parsing created_at: %w", err)
 	}
-	user.UpdatedAt, err = r.parseDateTime(updatedAt)
+	user.UpdatedAt, err = datetime.Parse(updatedAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("error parsing updated_at: %w", err)
@@ -86,12 +87,12 @@ func (r *userRepository) FindByEmail(email string) (*entity.User, error) {
 		}
 		return nil, fmt.Errorf("error finding user by email: %w", err)
 	}
-	user.CreatedAt, err = r.parseDateTime(createdAt)
+	user.CreatedAt, err = datetime.Parse(createdAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("error parsing created_at: %w", err)
 	}
-	user.UpdatedAt, err = r.parseDateTime(updatedAt)
+	user.UpdatedAt, err = datetime.Parse(updatedAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("error parsing updated_at: %w", err)
@@ -115,12 +116,12 @@ func (r *userRepository) FindByID(id int64) (*entity.User, error) {
 		}
 		return nil, fmt.Errorf("error finding user by id: %w", err)
 	}
-	user.CreatedAt, err = r.parseDateTime(createdAt)
+	user.CreatedAt, err = datetime.Parse(createdAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("error parsing created_at: %w", err)
 	}
-	user.UpdatedAt, err = r.parseDateTime(updatedAt)
+	user.UpdatedAt, err = datetime.Parse(updatedAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("error parsing updated_at: %w", err)
@@ -173,21 +174,4 @@ func (r *userRepository) ExistsEmail(email string) (bool, error) {
 		return false, fmt.Errorf("error checking email existence: %w", err)
 	}
 	return count > 0, nil
-}
-
-func (r *userRepository) parseDateTime(dateStr string) (time.Time, error) {
-	formats := []string{
-		time.RFC3339,
-		"2006-01-02T15:04:05Z",
-		"2006-01-02T15:04:05",
-		"2006-01-02 15:04:05",
-		time.DateTime,
-	}
-
-	for _, format := range formats {
-		if t, err := time.Parse(format, dateStr); err == nil {
-			return t, nil
-		}
-	}
-	return time.Time{}, fmt.Errorf("unable to parse datetime: %s", dateStr)
 }

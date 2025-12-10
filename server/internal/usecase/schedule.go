@@ -72,18 +72,13 @@ func (uc *ScheduleUseCase) CreateSchedule(req *entity.CreateScheduleRequest, use
 		return nil, pkgerrors.DatabaseError("create schedule", err)
 	}
 
-	// Race condition safe check to see if scheduler is started
-	uc.mu.RLock()
+	uc.mu.Lock()
 	if uc.isStarted && schedule.Active {
-		uc.mu.RUnlock()
-		uc.mu.Lock()
 		if err := uc.addJobToCronUnsafe(schedule); err != nil {
 			log.Printf("Warning: Could not add job to cron for schedule %d: %v", schedule.ID, err)
 		}
-		uc.mu.Unlock()
-	} else {
-		uc.mu.RUnlock()
 	}
+	uc.mu.Unlock()
 
 	log.Printf("✅ Schedule created: %s (ID: %d) - Next run: %v", schedule.Name, schedule.ID, nextRun)
 	return schedule, nil

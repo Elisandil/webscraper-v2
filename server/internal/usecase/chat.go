@@ -53,9 +53,7 @@ type hfResponse []struct {
 	GeneratedText string `json:"generated_text"`
 }
 
-// InterpretMessage uses a two-tier strategy: fast regex rules first, LLM fallback if configured.
-// This ensures zero-cost operation for common cases while supporting complex queries via HuggingFace.
-func (uc *ChatUseCase) InterpretMessage(message string) (*entity.ChatIntent, error) {
+func (uc *ChatUseCase) InterpretMessage(message string, parentCtx context.Context) (*entity.ChatIntent, error) {
 	intent := uc.trySimpleRules(message)
 	if intent.Action != "unknown" && intent.Confidence > 0.7 {
 		return intent, nil
@@ -66,7 +64,7 @@ func (uc *ChatUseCase) InterpretMessage(message string) (*entity.ChatIntent, err
 	}
 
 	if uc.hfAPIToken != "" || uc.config.Chat != nil {
-		llmIntent, err := uc.interpretWithLLM(message)
+		llmIntent, err := uc.interpretWithLLM(message, parentCtx)
 		if err == nil {
 			return llmIntent, nil
 		}
@@ -126,7 +124,6 @@ func (uc *ChatUseCase) trySimpleRules(message string) *entity.ChatIntent {
 	return intent
 }
 
-// extractCronFromText converts Spanish time expressions to cron format (6-field: sec min hour day month dow)
 func (uc *ChatUseCase) extractCronFromText(message string) (cronExpr, frequency string) {
 	message = strings.ToLower(message)
 
@@ -188,10 +185,10 @@ func (uc *ChatUseCase) extractCronFromText(message string) (cronExpr, frequency 
 	return "0 0 0 * * *", "diariamente (por defecto)"
 }
 
-func (uc *ChatUseCase) interpretWithLLM(message string) (*entity.ChatIntent, error) {
+func (uc *ChatUseCase) interpretWithLLM(message string, parentCtx context.Context) (*entity.ChatIntent, error) {
 	prompt := uc.buildPrompt(message)
 
-	response, err := uc.callHuggingFace(prompt)
+	response, err := uc.callHuggingFace(prompt, parentCtx)
 	if err != nil {
 		return nil, pkgerrors.InternalError("error calling HuggingFace API", err)
 	}
@@ -218,14 +215,14 @@ Example: "scrape_now|https://example.com|"
 Example: "create_schedule|https://reddit.com|every 2 hours"`, message)
 }
 
-func (uc *ChatUseCase) callHuggingFace(prompt string) (string, error) {
+func (uc *ChatUseCase) callHuggingFace(prompt string, parentCtx context.Context) (string, error) {
 	apiURL := fmt.Sprintf("https://api-inference.huggingface.co/models/%s", uc.hfModelID)
 
 	reqBody := hfRequest{
 		Inputs: prompt,
 		Parameters: map[string]interface{}{
 			"max_new_tokens": 100,
-			"temperature":    0.3, // Low temp for deterministic responses
+			"temperature":    0.3,
 			"do_sample":      false,
 		},
 	}
@@ -235,7 +232,7 @@ func (uc *ChatUseCase) callHuggingFace(prompt string) (string, error) {
 		return "", err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	ctx, cancel := context.WithTimeout(parentCtx, 25*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", apiURL, bytes.NewBuffer(jsonBody))
@@ -275,7 +272,6 @@ func (uc *ChatUseCase) callHuggingFace(prompt string) (string, error) {
 	return hfResp[0].GeneratedText, nil
 }
 
-// parseModelResponse expects format: ACTION|URL|FREQUENCY
 func (uc *ChatUseCase) parseModelResponse(response string) (*entity.ChatIntent, error) {
 	response = strings.TrimSpace(response)
 	lines := strings.Split(response, "\n")

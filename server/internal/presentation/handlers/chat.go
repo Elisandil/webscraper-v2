@@ -50,7 +50,7 @@ func (h *ChatHandler) ParseMessage(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Chat message from user %d: %s", user.ID, req.Message)
 
-	intent, err := h.chatUseCase.InterpretMessage(req.Message)
+	intent, err := h.chatUseCase.InterpretMessage(req.Message, r.Context())
 	if err != nil {
 		log.Printf("Error interpreting message: %v", err)
 		response.SendErrorResponse(w, "Error processing message", http.StatusInternalServerError, err.Error())

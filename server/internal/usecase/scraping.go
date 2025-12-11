@@ -179,6 +179,11 @@ func (uc *ScrapingUseCase) extractMetadata(n *html.Node, result *entity.Scraping
 }
 
 func (uc *ScrapingUseCase) extractMetaTag(node *html.Node, result *entity.ScrapingResult) {
+
+	if node == nil || node.Type != html.ElementNode || node.Data != "meta" {
+		return
+	}
+
 	var name, property, content string
 
 	for _, attr := range node.Attr {

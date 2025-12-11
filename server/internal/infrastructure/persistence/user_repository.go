@@ -10,6 +10,22 @@ import (
 	"webscraper-v2/pkg/datetime"
 )
 
+const (
+	queryUserCreate = `INSERT INTO users (username, email, password, role, active, created_at, updated_at) 
+			  VALUES (?, ?, ?, ?, ?, ?, ?)`
+	queryUserFindByUsername = `SELECT id, username, email, password, role, active, created_at, updated_at 
+			  FROM users WHERE username = ? AND active = true`
+	queryUserFindByEmail = `SELECT id, username, email, password, role, active, created_at, updated_at 
+			  FROM users WHERE email = ? AND active = true`
+	queryUserFindByID = `SELECT id, username, email, password, role, active, created_at, updated_at 
+			  FROM users WHERE id = ? AND active = true`
+	queryUserUpdate = `UPDATE users SET username = ?, email = ?, password = ?, role = ?, active = ?, updated_at = ? 
+			  WHERE id = ?`
+	queryUserDelete         = `UPDATE users SET active = false, updated_at = ? WHERE id = ?`
+	queryUserExistsUsername = `SELECT COUNT(*) FROM users WHERE username = ? AND active = true`
+	queryUserExistsEmail    = `SELECT COUNT(*) FROM users WHERE email = ? AND active = true`
+)
+
 type userRepository struct {
 	db *database.SQLiteDB
 }
@@ -19,14 +35,11 @@ func NewUserRepository(db *database.SQLiteDB) repository.UserRepository {
 }
 
 func (r *userRepository) Create(user *entity.User) error {
-	query := `INSERT INTO users (username, email, password, role, active, created_at, updated_at) 
-			  VALUES (?, ?, ?, ?, ?, ?, ?)`
-
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
-	res, err := r.db.Exec(query,
+	res, err := r.db.Exec(queryUserCreate,
 		user.Username, user.Email, user.Password, user.Role,
 		user.Active, user.CreatedAt, user.UpdatedAt)
 
@@ -43,12 +56,9 @@ func (r *userRepository) Create(user *entity.User) error {
 }
 
 func (r *userRepository) FindByUsername(username string) (*entity.User, error) {
-	query := `SELECT id, username, email, password, role, active, created_at, updated_at 
-			  FROM users WHERE username = ? AND active = true`
-
 	user := &entity.User{}
 	var createdAt, updatedAt string
-	err := r.db.QueryRow(query, username).Scan(
+	err := r.db.QueryRow(queryUserFindByUsername, username).Scan(
 		&user.ID, &user.Username, &user.Email, &user.Password,
 		&user.Role, &user.Active, &createdAt, &updatedAt)
 
@@ -72,12 +82,9 @@ func (r *userRepository) FindByUsername(username string) (*entity.User, error) {
 }
 
 func (r *userRepository) FindByEmail(email string) (*entity.User, error) {
-	query := `SELECT id, username, email, password, role, active, created_at, updated_at 
-			  FROM users WHERE email = ? AND active = true`
-
 	user := &entity.User{}
 	var createdAt, updatedAt string
-	err := r.db.QueryRow(query, email).Scan(
+	err := r.db.QueryRow(queryUserFindByEmail, email).Scan(
 		&user.ID, &user.Username, &user.Email, &user.Password,
 		&user.Role, &user.Active, &createdAt, &updatedAt)
 
@@ -101,12 +108,9 @@ func (r *userRepository) FindByEmail(email string) (*entity.User, error) {
 }
 
 func (r *userRepository) FindByID(id int64) (*entity.User, error) {
-	query := `SELECT id, username, email, password, role, active, created_at, updated_at 
-			  FROM users WHERE id = ? AND active = true`
-
 	user := &entity.User{}
 	var createdAt, updatedAt string
-	err := r.db.QueryRow(query, id).Scan(
+	err := r.db.QueryRow(queryUserFindByID, id).Scan(
 		&user.ID, &user.Username, &user.Email, &user.Password,
 		&user.Role, &user.Active, &createdAt, &updatedAt)
 
@@ -130,11 +134,8 @@ func (r *userRepository) FindByID(id int64) (*entity.User, error) {
 }
 
 func (r *userRepository) Update(user *entity.User) error {
-	query := `UPDATE users SET username = ?, email = ?, password = ?, role = ?, active = ?, updated_at = ? 
-			  WHERE id = ?`
-
 	user.UpdatedAt = time.Now()
-	_, err := r.db.Exec(query,
+	_, err := r.db.Exec(queryUserUpdate,
 		user.Username, user.Email, user.Password, user.Role,
 		user.Active, user.UpdatedAt, user.ID)
 
@@ -145,8 +146,7 @@ func (r *userRepository) Update(user *entity.User) error {
 }
 
 func (r *userRepository) Delete(id int64) error {
-	query := `UPDATE users SET active = false, updated_at = ? WHERE id = ?`
-	_, err := r.db.Exec(query, time.Now(), id)
+	_, err := r.db.Exec(queryUserDelete, time.Now(), id)
 
 	if err != nil {
 		return fmt.Errorf("error deleting user: %w", err)
@@ -155,9 +155,8 @@ func (r *userRepository) Delete(id int64) error {
 }
 
 func (r *userRepository) ExistsUsername(username string) (bool, error) {
-	query := `SELECT COUNT(*) FROM users WHERE username = ? AND active = true`
 	var count int
-	err := r.db.QueryRow(query, username).Scan(&count)
+	err := r.db.QueryRow(queryUserExistsUsername, username).Scan(&count)
 
 	if err != nil {
 		return false, fmt.Errorf("error checking username existence: %w", err)
@@ -166,9 +165,8 @@ func (r *userRepository) ExistsUsername(username string) (bool, error) {
 }
 
 func (r *userRepository) ExistsEmail(email string) (bool, error) {
-	query := `SELECT COUNT(*) FROM users WHERE email = ? AND active = true`
 	var count int
-	err := r.db.QueryRow(query, email).Scan(&count)
+	err := r.db.QueryRow(queryUserExistsEmail, email).Scan(&count)
 
 	if err != nil {
 		return false, fmt.Errorf("error checking email existence: %w", err)

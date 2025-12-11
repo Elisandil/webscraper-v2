@@ -10,6 +10,51 @@ import (
 	"webscraper-v2/pkg/datetime"
 )
 
+const (
+	queryScrapingSave = `INSERT INTO scraping_results (
+		user_id, url, title, description, keywords, author, language, favicon, 
+		image_url, site_name, links, images, headers, status_code, 
+		content_type, word_count, load_time_ms, created_at
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
+	queryScrapingFindAll = `SELECT 
+		id, url, title, description, keywords, author, language, favicon,
+		image_url, site_name, links, images, headers, status_code,
+		content_type, word_count, load_time_ms, created_at 
+	FROM scraping_results 
+	ORDER BY created_at DESC`
+
+	queryScrapingFindByUserID = `
+    SELECT 
+        id, user_id, url, title, description, keywords, author, language,
+        favicon, image_url, site_name, links, images, headers, status_code,
+        content_type, word_count, load_time_ms, created_at
+    FROM scraping_results
+    WHERE user_id = ?
+    ORDER BY created_at DESC`
+
+	queryScrapingFindByID = `SELECT 
+		id, url, title, description, keywords, author, language, favicon,
+		image_url, site_name, links, images, headers, status_code,
+		content_type, word_count, load_time_ms, created_at 
+	FROM scraping_results 
+	WHERE id = ?`
+
+	queryScrapingDelete = `DELETE FROM scraping_results WHERE id = ?`
+
+	queryScrapingFindPaginated = `
+    SELECT 
+        id, user_id, url, title, description, keywords, author, language,
+        favicon, image_url, site_name, links, images, headers, status_code,
+        content_type, word_count, load_time_ms, created_at
+    FROM scraping_results
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+    LIMIT ? OFFSET ?`
+
+	queryScrapingCount = `SELECT COUNT(*) FROM scraping_results WHERE user_id = ?`
+)
+
 type scrapingRepository struct {
 	db *database.SQLiteDB
 }
@@ -19,11 +64,6 @@ func NewScrapingRepository(db *database.SQLiteDB) repository.ScrapingRepository 
 }
 
 func (r *scrapingRepository) Save(result *entity.ScrapingResult) error {
-	query := `INSERT INTO scraping_results (
-		user_id, url, title, description, keywords, author, language, favicon, 
-		image_url, site_name, links, images, headers, status_code, 
-		content_type, word_count, load_time_ms, created_at
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	linksJSON, err := json.Marshal(result.Links)
 
 	if err != nil {
@@ -38,7 +78,7 @@ func (r *scrapingRepository) Save(result *entity.ScrapingResult) error {
 	if err != nil {
 		return fmt.Errorf("error marshaling headers: %w", err)
 	}
-	res, err := r.db.Exec(query,
+	res, err := r.db.Exec(queryScrapingSave,
 		result.UserID, result.URL, result.Title, result.Description,
 		result.Keywords, result.Author, result.Language, result.Favicon,
 		result.ImageURL, result.SiteName, string(linksJSON), string(imagesJSON),
@@ -58,14 +98,7 @@ func (r *scrapingRepository) Save(result *entity.ScrapingResult) error {
 }
 
 func (r *scrapingRepository) FindAll() ([]*entity.ScrapingResult, error) {
-	query := `SELECT 
-		id, url, title, description, keywords, author, language, favicon,
-		image_url, site_name, links, images, headers, status_code,
-		content_type, word_count, load_time_ms, created_at 
-	FROM scraping_results 
-	ORDER BY created_at DESC`
-
-	rows, err := r.db.Query(query)
+	rows, err := r.db.Query(queryScrapingFindAll)
 
 	if err != nil {
 		return nil, fmt.Errorf("error querying results: %w", err)
@@ -109,17 +142,7 @@ func (r *scrapingRepository) FindAll() ([]*entity.ScrapingResult, error) {
 }
 
 func (r *scrapingRepository) FindAllByUserID(userID int64) ([]*entity.ScrapingResult, error) {
-	query := `
-    SELECT 
-        id, user_id, url, title, description, keywords, author, language,
-        favicon, image_url, site_name, links, images, headers, status_code,
-        content_type, word_count, load_time_ms, created_at
-    FROM scraping_results
-    WHERE user_id = ?
-    ORDER BY created_at DESC
-    `
-
-	rows, err := r.db.Query(query, userID)
+	rows, err := r.db.Query(queryScrapingFindByUserID, userID)
 
 	if err != nil {
 		return nil, fmt.Errorf("error querying results: %w", err)
@@ -163,16 +186,9 @@ func (r *scrapingRepository) FindAllByUserID(userID int64) ([]*entity.ScrapingRe
 }
 
 func (r *scrapingRepository) FindByID(id int64) (*entity.ScrapingResult, error) {
-	query := `SELECT 
-		id, url, title, description, keywords, author, language, favicon,
-		image_url, site_name, links, images, headers, status_code,
-		content_type, word_count, load_time_ms, created_at 
-	FROM scraping_results 
-	WHERE id = ?`
-
 	result := &entity.ScrapingResult{}
 	var linksJSON, imagesJSON, headersJSON, createdAt string
-	err := r.db.QueryRow(query, id).Scan(
+	err := r.db.QueryRow(queryScrapingFindByID, id).Scan(
 		&result.ID, &result.URL, &result.Title, &result.Description,
 		&result.Keywords, &result.Author, &result.Language, &result.Favicon,
 		&result.ImageURL, &result.SiteName, &linksJSON, &imagesJSON,
@@ -204,8 +220,7 @@ func (r *scrapingRepository) FindByID(id int64) (*entity.ScrapingResult, error) 
 }
 
 func (r *scrapingRepository) Delete(id int64) error {
-	query := `DELETE FROM scraping_results WHERE id = ?`
-	_, err := r.db.Exec(query, id)
+	_, err := r.db.Exec(queryScrapingDelete, id)
 
 	if err != nil {
 		return fmt.Errorf("error deleting result: %w", err)
@@ -222,17 +237,7 @@ func (r *scrapingRepository) FindAllByUserIDPaginated(userID int64, pagination *
 	if totalCount == 0 {
 		return []*entity.ScrapingResult{}, 0, nil
 	}
-	query := `
-    SELECT 
-        id, user_id, url, title, description, keywords, author, language,
-        favicon, image_url, site_name, links, images, headers, status_code,
-        content_type, word_count, load_time_ms, created_at
-    FROM scraping_results
-    WHERE user_id = ?
-    ORDER BY created_at DESC
-    LIMIT ? OFFSET ?
-    `
-	rows, err := r.db.Query(query, userID, pagination.PerPage, pagination.Offset())
+	rows, err := r.db.Query(queryScrapingFindPaginated, userID, pagination.PerPage, pagination.Offset())
 
 	if err != nil {
 		return nil, 0, fmt.Errorf("error querying paginated results: %w", err)
@@ -277,9 +282,8 @@ func (r *scrapingRepository) FindAllByUserIDPaginated(userID int64, pagination *
 }
 
 func (r *scrapingRepository) CountByUserID(userID int64) (int64, error) {
-	query := `SELECT COUNT(*) FROM scraping_results WHERE user_id = ?`
 	var count int64
-	err := r.db.QueryRow(query, userID).Scan(&count)
+	err := r.db.QueryRow(queryScrapingCount, userID).Scan(&count)
 
 	if err != nil {
 		return 0, fmt.Errorf("error counting results by user ID: %w", err)

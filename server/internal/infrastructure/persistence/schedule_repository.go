@@ -10,6 +10,22 @@ import (
 	"webscraper-v2/pkg/datetime"
 )
 
+const (
+	queryScheduleCreate = `INSERT INTO schedules (user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at) 
+			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	queryScheduleFindByID = `SELECT id, user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at 
+			  FROM schedules WHERE id = ?`
+	queryScheduleFindByUserID = `SELECT id, user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at 
+			  FROM schedules WHERE user_id = ? ORDER BY created_at DESC`
+	queryScheduleFindActive = `SELECT id, user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at 
+			  FROM schedules WHERE active = true ORDER BY next_run ASC`
+	queryScheduleUpdate = `UPDATE schedules SET name = ?, url = ?, cron_expression = ?, active = ?, updated_at = ? 
+			  WHERE id = ?`
+	queryScheduleDelete        = `DELETE FROM schedules WHERE id = ?`
+	queryScheduleUpdateLastRun = `UPDATE schedules SET last_run = ?, run_count = ?, updated_at = ? WHERE id = ?`
+	queryScheduleUpdateNextRun = `UPDATE schedules SET next_run = ?, updated_at = ? WHERE id = ?`
+)
+
 type scheduleRepository struct {
 	db *database.SQLiteDB
 }
@@ -19,14 +35,11 @@ func NewScheduleRepository(db *database.SQLiteDB) repository.ScheduleRepository 
 }
 
 func (r *scheduleRepository) Create(schedule *entity.Schedule) error {
-	query := `INSERT INTO schedules (user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at) 
-			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
 	now := time.Now()
 	schedule.CreatedAt = now
 	schedule.UpdatedAt = now
 
-	res, err := r.db.Exec(query,
+	res, err := r.db.Exec(queryScheduleCreate,
 		schedule.UserID, schedule.Name, schedule.URL, schedule.CronExpr,
 		schedule.Active, schedule.LastRun, schedule.NextRun, schedule.RunCount,
 		schedule.CreatedAt, schedule.UpdatedAt)
@@ -44,13 +57,10 @@ func (r *scheduleRepository) Create(schedule *entity.Schedule) error {
 }
 
 func (r *scheduleRepository) FindByID(id int64) (*entity.Schedule, error) {
-	query := `SELECT id, user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at 
-			  FROM schedules WHERE id = ?`
-
 	schedule := &entity.Schedule{}
 	var lastRun, nextRun, createdAt, updatedAt sql.NullString
 
-	err := r.db.QueryRow(query, id).Scan(
+	err := r.db.QueryRow(queryScheduleFindByID, id).Scan(
 		&schedule.ID, &schedule.UserID, &schedule.Name, &schedule.URL,
 		&schedule.CronExpr, &schedule.Active, &lastRun, &nextRun,
 		&schedule.RunCount, &createdAt, &updatedAt)
@@ -70,25 +80,16 @@ func (r *scheduleRepository) FindByID(id int64) (*entity.Schedule, error) {
 }
 
 func (r *scheduleRepository) FindByUserID(userID int64) ([]*entity.Schedule, error) {
-	query := `SELECT id, user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at 
-			  FROM schedules WHERE user_id = ? ORDER BY created_at DESC`
-
-	return r.findSchedules(query, userID)
+	return r.findSchedules(queryScheduleFindByUserID, userID)
 }
 
 func (r *scheduleRepository) FindActiveSchedules() ([]*entity.Schedule, error) {
-	query := `SELECT id, user_id, name, url, cron_expression, active, last_run, next_run, run_count, created_at, updated_at 
-			  FROM schedules WHERE active = true ORDER BY next_run ASC`
-
-	return r.findSchedules(query)
+	return r.findSchedules(queryScheduleFindActive)
 }
 
 func (r *scheduleRepository) Update(schedule *entity.Schedule) error {
-	query := `UPDATE schedules SET name = ?, url = ?, cron_expression = ?, active = ?, updated_at = ? 
-			  WHERE id = ?`
-
 	schedule.UpdatedAt = time.Now()
-	_, err := r.db.Exec(query,
+	_, err := r.db.Exec(queryScheduleUpdate,
 		schedule.Name, schedule.URL, schedule.CronExpr, schedule.Active,
 		schedule.UpdatedAt, schedule.ID)
 
@@ -99,8 +100,7 @@ func (r *scheduleRepository) Update(schedule *entity.Schedule) error {
 }
 
 func (r *scheduleRepository) Delete(id int64) error {
-	query := `DELETE FROM schedules WHERE id = ?`
-	_, err := r.db.Exec(query, id)
+	_, err := r.db.Exec(queryScheduleDelete, id)
 
 	if err != nil {
 		return fmt.Errorf("error deleting schedule: %w", err)
@@ -109,8 +109,7 @@ func (r *scheduleRepository) Delete(id int64) error {
 }
 
 func (r *scheduleRepository) UpdateLastRun(id int64, lastRun time.Time, runCount int) error {
-	query := `UPDATE schedules SET last_run = ?, run_count = ?, updated_at = ? WHERE id = ?`
-	_, err := r.db.Exec(query, lastRun, runCount, time.Now(), id)
+	_, err := r.db.Exec(queryScheduleUpdateLastRun, lastRun, runCount, time.Now(), id)
 
 	if err != nil {
 		return fmt.Errorf("error updating last run: %w", err)
@@ -119,8 +118,7 @@ func (r *scheduleRepository) UpdateLastRun(id int64, lastRun time.Time, runCount
 }
 
 func (r *scheduleRepository) UpdateNextRun(id int64, nextRun time.Time) error {
-	query := `UPDATE schedules SET next_run = ?, updated_at = ? WHERE id = ?`
-	_, err := r.db.Exec(query, nextRun, time.Now(), id)
+	_, err := r.db.Exec(queryScheduleUpdateNextRun, nextRun, time.Now(), id)
 
 	if err != nil {
 		return fmt.Errorf("error updating next run: %w", err)

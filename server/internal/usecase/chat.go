@@ -53,6 +53,11 @@ type hfResponse []struct {
 	GeneratedText string `json:"generated_text"`
 }
 
+type timeInterval struct {
+	value int
+	unit  string
+}
+
 func (uc *ChatUseCase) InterpretMessage(message string, parentCtx context.Context) (*entity.ChatIntent, error) {
 	intent := uc.trySimpleRules(message)
 	if intent.Action != "unknown" && intent.Confidence > 0.7 {
@@ -127,62 +132,169 @@ func (uc *ChatUseCase) trySimpleRules(message string) *entity.ChatIntent {
 func (uc *ChatUseCase) extractCronFromText(message string) (cronExpr, frequency string) {
 	message = strings.ToLower(message)
 
-	patterns := map[string]struct {
-		regex string
-		cron  string
-		freq  string
+	interval := uc.parseTimeInterval(message)
+	if interval != nil {
+		cron, freq := uc.intervalToCron(interval)
+		if cron != "" {
+			return cron, freq
+		}
+	}
+
+	if matched, hour, minute := uc.parseSpecificTime(message); matched {
+		return fmt.Sprintf("0 %d %d * * *", minute, hour), fmt.Sprintf("diariamente a las %02d:%02d", hour, minute)
+	}
+
+	presetPatterns := []struct {
+		patterns []string
+		cron     string
+		freq     string
 	}{
-		"every_n_hours": {
-			regex: `cada\s+(\d+)\s+horas?`,
-			cron:  "0 0 */%d * * *",
-			freq:  "cada %d horas",
+		{
+			patterns: []string{"diariamente", "cada día", "todos los días", "daily"},
+			cron:     "0 0 0 * * *",
+			freq:     "diariamente",
 		},
-		"every_n_minutes": {
-			regex: `cada\s+(\d+)\s+minutos?`,
-			cron:  "0 */%d * * * *",
-			freq:  "cada %d minutos",
+		{
+			patterns: []string{"cada hora", "hourly", "por hora"},
+			cron:     "0 0 * * * *",
+			freq:     "cada hora",
 		},
-		"daily": {
-			regex: `(diariamente|cada d[ií]a|todos los d[ií]as)`,
-			cron:  "0 0 0 * * *",
-			freq:  "diariamente",
+		{
+			patterns: []string{"semanalmente", "cada semana", "weekly"},
+			cron:     "0 0 0 * * 0",
+			freq:     "semanalmente",
 		},
-		"daily_at_time": {
-			regex: `todos los d[ií]as a las? (\d+)(?::(\d+))?`,
-			cron:  "0 0 %d * * *",
-			freq:  "diariamente a las %d:00",
-		},
-		"hourly": {
-			regex: `cada hora`,
-			cron:  "0 0 * * * *",
-			freq:  "cada hora",
-		},
-		"weekly": {
-			regex: `semanalmente|cada semana`,
-			cron:  "0 0 0 * * 0",
-			freq:  "semanalmente",
+		{
+			patterns: []string{"mensualmente", "cada mes", "monthly"},
+			cron:     "0 0 0 1 * *",
+			freq:     "mensualmente",
 		},
 	}
 
-	for _, pattern := range patterns {
-		re := regexp.MustCompile(pattern.regex)
-		matches := re.FindStringSubmatch(message)
-
-		if len(matches) > 0 {
-			switch {
-			case strings.Contains(pattern.regex, "every_n"):
-				n, _ := strconv.Atoi(matches[1])
-				return fmt.Sprintf(pattern.cron, n), fmt.Sprintf(pattern.freq, n)
-			case strings.Contains(pattern.regex, "daily_at_time"):
-				hour, _ := strconv.Atoi(matches[1])
-				return fmt.Sprintf("0 0 %d * * *", hour), fmt.Sprintf("diariamente a las %d:00", hour)
-			default:
-				return pattern.cron, pattern.freq
+	for _, preset := range presetPatterns {
+		for _, pattern := range preset.patterns {
+			if strings.Contains(message, pattern) {
+				return preset.cron, preset.freq
 			}
 		}
 	}
 
 	return "0 0 0 * * *", "diariamente (por defecto)"
+}
+
+func (uc *ChatUseCase) parseTimeInterval(message string) *timeInterval {
+	patterns := []struct {
+		regex *regexp.Regexp
+		unit  string
+	}{
+		{regexp.MustCompile(`cada\s+(\d+)\s+segundos?`), "second"},
+		{regexp.MustCompile(`cada\s+(\d+)\s+minutos?`), "minute"},
+		{regexp.MustCompile(`cada\s+(\d+)\s+horas?`), "hour"},
+		{regexp.MustCompile(`cada\s+(\d+)\s+d[ií]as?`), "day"},
+		{regexp.MustCompile(`cada\s+(\d+)\s+semanas?`), "week"},
+		{regexp.MustCompile(`every\s+(\d+)\s+seconds?`), "second"},
+		{regexp.MustCompile(`every\s+(\d+)\s+minutes?`), "minute"},
+		{regexp.MustCompile(`every\s+(\d+)\s+hours?`), "hour"},
+		{regexp.MustCompile(`every\s+(\d+)\s+days?`), "day"},
+		{regexp.MustCompile(`every\s+(\d+)\s+weeks?`), "week"},
+	}
+
+	for _, pattern := range patterns {
+		if matches := pattern.regex.FindStringSubmatch(message); len(matches) > 1 {
+			value, err := strconv.Atoi(matches[1])
+			if err == nil && value > 0 {
+				return &timeInterval{value: value, unit: pattern.unit}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (uc *ChatUseCase) intervalToCron(interval *timeInterval) (cronExpr, frequency string) {
+	var freqText string
+
+	switch interval.unit {
+	case "second":
+		if interval.value >= 60 {
+			return "", ""
+		}
+		cronExpr = fmt.Sprintf("*/%d * * * * *", interval.value)
+		freqText = fmt.Sprintf("cada %d segundos", interval.value)
+
+	case "minute":
+		if interval.value >= 60 {
+			return "", ""
+		}
+		cronExpr = fmt.Sprintf("0 */%d * * * *", interval.value)
+		freqText = fmt.Sprintf("cada %d minutos", interval.value)
+
+	case "hour":
+		if interval.value >= 24 {
+			return "", ""
+		}
+		cronExpr = fmt.Sprintf("0 0 */%d * * *", interval.value)
+		freqText = fmt.Sprintf("cada %d horas", interval.value)
+
+	case "day":
+		if interval.value > 31 {
+			return "", ""
+		}
+		if interval.value == 1 {
+			cronExpr = "0 0 0 * * *"
+			freqText = "diariamente"
+		} else {
+			cronExpr = fmt.Sprintf("0 0 0 */%d * *", interval.value)
+			freqText = fmt.Sprintf("cada %d días", interval.value)
+		}
+
+	case "week":
+		if interval.value > 4 {
+			return "", ""
+		}
+		if interval.value == 1 {
+			cronExpr = "0 0 0 * * 0"
+			freqText = "semanalmente"
+		} else {
+			cronExpr = fmt.Sprintf("0 0 0 * * 0/%d", interval.value)
+			freqText = fmt.Sprintf("cada %d semanas", interval.value)
+		}
+
+	default:
+		return "", ""
+	}
+
+	return cronExpr, freqText
+}
+
+func (uc *ChatUseCase) parseSpecificTime(message string) (matched bool, hour, minute int) {
+	timePatterns := []*regexp.Regexp{
+		regexp.MustCompile(`todos los d[ií]as a las? (\d+)(?::(\d+))?`),
+		regexp.MustCompile(`diariamente a las? (\d+)(?::(\d+))?`),
+		regexp.MustCompile(`cada d[ií]a a las? (\d+)(?::(\d+))?`),
+		regexp.MustCompile(`a las? (\d+)(?::(\d+))?`),
+	}
+
+	for _, pattern := range timePatterns {
+		if matches := pattern.FindStringSubmatch(message); len(matches) > 1 {
+			h, err := strconv.Atoi(matches[1])
+			if err != nil || h < 0 || h > 23 {
+				continue
+			}
+
+			m := 0
+			if len(matches) > 2 && matches[2] != "" {
+				m, err = strconv.Atoi(matches[2])
+				if err != nil || m < 0 || m > 59 {
+					continue
+				}
+			}
+
+			return true, h, m
+		}
+	}
+
+	return false, 0, 0
 }
 
 func (uc *ChatUseCase) interpretWithLLM(message string, parentCtx context.Context) (*entity.ChatIntent, error) {

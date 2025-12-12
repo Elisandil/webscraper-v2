@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAlert } from "./AlertContext";
+import { useSchedule } from "./ScheduleContext";
 
 const ChatContext = createContext();
 
@@ -18,6 +19,7 @@ export const ChatProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingIntent, setPendingIntent] = useState(null);
   const { showSuccess, showError } = useAlert();
+    const { refreshSchedules } = useSchedule();
 
   const addMessage = (message, isUser = false) => {
     setMessages((prev) => [...prev, { text: message, isUser, timestamp: new Date() }]);
@@ -74,7 +76,7 @@ export const ChatProvider = ({ children }) => {
         if (pendingIntent.action === "scrape_now") {
           window.dispatchEvent(new Event("reload-results"));
         } else if (pendingIntent.action === "create_schedule") {
-          window.dispatchEvent(new Event("reload-schedules"));
+          await refreshSchedules();
         }
       } else {
         addMessage("Error al ejecutar la acción: " + (data.error || "Error desconocido"), false);

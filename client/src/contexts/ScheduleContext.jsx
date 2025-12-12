@@ -28,7 +28,6 @@ export function ScheduleProvider({ children }) {
         }
     }, [isAuthenticated]);
 
-    // Load schedules when authenticated
     useEffect(() => {
         if (isAuthenticated) {
             loadSchedules();

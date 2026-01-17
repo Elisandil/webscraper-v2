@@ -538,13 +538,6 @@ GET /api/results?page=1&per_page=10
 Authorization: Bearer <token>
 ```
 
-<p>
-  <img src="assets/ScrapingModal.png" width="500" alt="Resultados" />
-  <br>
-  <img src="assets/Pagination01.png" width="250" alt="Páginación 1" />
-  <img src="assets/Pagination02.png" width="400" alt="Páginación 2" />
-</p>
-
 Solo devuelve los scrapes del usuario autenticado con información de paginación (opcional).
 
 

@@ -47,8 +47,6 @@ La página de bienvenida muestra las características principales de la platafor
 
 ![Landing Page con Rate Limiting](assets/landing_page_ratelimiting.png)
 
-Sistema de paginación implementado para manejar grandes volúmenes de datos de forma eficiente.
-
 ### Autenticación
 
 **Formulario de Registro**
@@ -70,8 +68,6 @@ Sistema de autenticación con JWT para acceso seguro a la plataforma.
 ![Vista Principal](assets/results.png)
 
 Dashboard completo con listado de resultados de scraping, filtros y acciones disponibles.
-
-**Paginación de Resultados**
 
 ### Programación de Tareas (Schedules)
 

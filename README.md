@@ -6,7 +6,12 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
 
 ## Índice
 - [WebScraper App](#webscraper-app)
-  - [Índice](#índice)
+    - [Screenshots](#screenshots)
+      - [Página de Inicio (Landing Page)](#página-de-inicio-landing-page)
+      - [Autenticación](#autenticación-1)
+      - [Dashboard Principal](#dashboard-principal)
+      - [Programación de Tareas (Schedules)](#programación-de-tareas-schedules)
+      - [Asistente de Chat con IA](#asistente-de-chat-con-ia)
   - [El Viaje de Aprendizaje](#el-viaje-de-aprendizaje)
   - [Lo que realmente aprendí](#lo-que-realmente-aprendí)
   - [Características](#características)
@@ -31,6 +36,64 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
   - [Flujo de Uso](#flujo-de-uso)
   - [Autoría](#autoría)
   - [Licencia](#licencia)
+
+
+## Screenshots
+
+### Página de Inicio (Landing Page)
+![Landing Page](assets/landing_page.png)
+
+La página de bienvenida muestra las características principales de la plataforma con un diseño moderno y atractivo.
+
+![Landing Page con Rate Limiting](assets/landing_page_ratelimiting.png)
+
+Sistema de paginación implementado para manejar grandes volúmenes de datos de forma eficiente.
+
+### Autenticación
+
+**Formulario de Registro**
+
+![Registro de Usuario](assets/register.png)
+
+Formulario completo con validación de campos para crear una nueva cuenta.
+
+**Inicio de Sesión**
+
+![Login de Usuario](assets/login.png)
+
+Sistema de autenticación con JWT para acceso seguro a la plataforma.
+
+### Dashboard Principal
+
+**Vista General de Resultados**
+
+![Vista Principal](assets/results.png)
+
+Dashboard completo con listado de resultados de scraping, filtros y acciones disponibles.
+
+**Paginación de Resultados**
+
+### Programación de Tareas (Schedules)
+
+**Formulario de Nuevo Schedule**
+
+![Formulario de Schedule](assets/schedule_form.png)
+
+Modal para crear tareas programadas con expresiones cron y ejemplos comunes de uso.
+
+**Listado de Schedules**
+
+![Lista de Schedules](assets/schedule_list.png)
+
+Visualización de todas las tareas programadas con información de estado y próxima ejecución.
+
+### Asistente de Chat con IA
+
+**Chat Assistant**
+
+![Chat con IA](assets/ia.png)
+
+Asistente inteligente que permite crear scraping y schedules mediante lenguaje natural, powered by HuggingFace.
 
 
 ## El Viaje de Aprendizaje
@@ -422,8 +485,6 @@ Content-Type: application/json
 }
 ```
 
-![Registro de usuario](assets/RegisterForm.png)
-
 1. **Autenticación**
    
 ```bash
@@ -435,8 +496,6 @@ Content-Type: application/json
   "password": "password123"
 }
 ```
-
-![Login de usuario](assets/LoginForm.png)
 
 Respuesta:
 ```json
@@ -504,11 +563,6 @@ Content-Type: application/json
 }
 ```
 
-<p align="center">
-  <img src="assets/ScheduleForm.png" width="350" alt="Modal para Schedules" />
-  <img src="assets/ScheduleSection.png" width="300" alt="Resultados de Schedules" />
-</p>
-
 La tarea se ejecutará automáticamente según la expresión cron (diariamente a las 9:00).
 
 5. **Chat con IA - Crear scraping con lenguaje natural**
@@ -559,8 +613,6 @@ El sistema crea automáticamente el schedule sin necesidad de especificar manual
    
 - `GET /api/results/{id}` - Ver detalles completos
 - `DELETE /api/results/{id}` - Eliminar resultado
-
-![Scraping Modal](assets/MainView.png)
 
 7. **Logout seguro**
    

@@ -1,17 +1,33 @@
 # WebScraper App
 
+![Go](https://img.shields.io/badge/Go-1.24-00ADD8?style=for-the-badge&logo=go&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-NLP-FFD21E?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
 Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links, imágenes y contenido de páginas web, con Go en el backend y React + Tailwind CSS en el frontend. Incluye autenticación JWT completa, programación de tareas con cron, almacenamiento de resultados por usuario en SQLite y un **asistente de chat con IA** que permite crear scraping mediante lenguaje natural.
 
-
+---
 
 ## Índice
+[WebScraper App](#webscraper-app)
 - [WebScraper App](#webscraper-app)
-    - [Screenshots](#screenshots)
-      - [Página de Inicio (Landing Page)](#página-de-inicio-landing-page)
-      - [Autenticación](#autenticación-1)
-      - [Dashboard Principal](#dashboard-principal)
-      - [Programación de Tareas (Schedules)](#programación-de-tareas-schedules)
-      - [Asistente de Chat con IA](#asistente-de-chat-con-ia)
+  - [Índice](#índice)
+  - [Skills Demostradas](#skills-demostradas)
+    - [Backend](#backend)
+    - [Frontend](#frontend)
+    - [Integración IA](#integración-ia)
+    - [DevOps \& Herramientas](#devops--herramientas)
+  - [Screenshots](#screenshots)
+    - [Página de Inicio (Landing Page)](#página-de-inicio-landing-page)
+    - [Autenticación](#autenticación)
+    - [Dashboard Principal](#dashboard-principal)
+    - [Programación de Tareas (Schedules)](#programación-de-tareas-schedules)
+    - [Asistente de Chat con IA](#asistente-de-chat-con-ia)
   - [El Viaje de Aprendizaje](#el-viaje-de-aprendizaje)
   - [Lo que realmente aprendí](#lo-que-realmente-aprendí)
   - [Características](#características)
@@ -27,7 +43,7 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
   - [Instalación y Uso](#instalación-y-uso)
     - [Setup para nuevos desarrolladores](#setup-para-nuevos-desarrolladores)
   - [Endpoints de la API](#endpoints-de-la-api)
-    - [Autenticación](#autenticación)
+    - [Autenticación](#autenticación-1)
     - [Scraping](#scraping)
     - [Programación](#programación)
     - [Chat con IA](#chat-con-ia)
@@ -37,6 +53,55 @@ Un proyecto Full‑Stack con propósito formativo para extraer metadatos, links,
   - [Autoría](#autoría)
   - [Licencia](#licencia)
 
+## Skills Demostradas
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### Backend
+- **Go** - Desarrollo de APIs REST eficientes
+- **Clean Architecture** - Separación de responsabilidades en capas
+- **JWT Authentication** - Tokens de acceso y refresh seguros
+- **Cron Jobs** - Programación de tareas automáticas
+- **SQLite** - Persistencia de datos sin dependencias externas
+- **Rate Limiting** - Protección contra abuso de endpoints
+- **Middleware Pattern** - CORS, logging, autenticación
+
+</td>
+<td width="50%" valign="top">
+
+### Frontend
+- **React 19** - Componentes funcionales y hooks
+- **Context API** - Gestión de estado global
+- **Tailwind CSS** - Diseño responsive y moderno
+- **Vite** - Build tool de última generación
+- **Arquitectura modular** - Páginas, features y componentes UI
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### Integración IA
+- **HuggingFace API** - Modelos de NLP
+- **Procesamiento de lenguaje natural**
+- **Interpretación de intenciones de usuario**
+- **Ejecución automática de acciones**
+
+</td>
+<td width="50%" valign="top">
+
+### DevOps & Herramientas
+- **Git** - Control de versiones
+- **pnpm** - Gestión eficiente de paquetes
+- **YAML Config** - Configuración externalizada
+
+</td>
+</tr>
+</table>
+
+---
 
 ## Screenshots
 

@@ -48,14 +48,14 @@ export default function Landing({ onGetStarted }) {
       <nav className="container mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/40">
+            <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/40">
               <span className="text-white font-bold text-xl">W</span>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 text-transparent bg-clip-text">WebScraper</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 text-transparent bg-clip-text">WebScraper</span>
           </div>
           <button
             onClick={onGetStarted}
-            className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-semibold transition-colors duration-200 shadow-lg shadow-cyan-500/20"
+            className="px-6 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg font-semibold transition-colors duration-200 shadow-lg shadow-violet-500/20"
           >
             Iniciar Sesión
           </button>
@@ -64,7 +64,7 @@ export default function Landing({ onGetStarted }) {
 
       <section className="container mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-teal-400 to-green-400 text-transparent bg-clip-text">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-violet-400 via-indigo-400 to-green-400 text-transparent bg-clip-text">
             Extrae Datos Web de Forma Inteligente
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-10">
@@ -79,13 +79,13 @@ export default function Landing({ onGetStarted }) {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://ejemplo.com"
-                className="flex-1 px-6 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                className="flex-1 px-6 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 disabled:from-gray-600 disabled:to-gray-600 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-cyan-500/30 disabled:transform-none disabled:shadow-none"
+                className="px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:from-gray-600 disabled:to-gray-600 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-violet-500/30 disabled:transform-none disabled:shadow-none"
               >
                 {loading ? "Procesando..." : "Probar Gratis"}
               </button>
@@ -99,7 +99,7 @@ export default function Landing({ onGetStarted }) {
 
             {result && (
               <div className="mt-6 p-6 bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl border border-gray-700 text-left">
-                <h3 className="text-xl font-bold mb-4 text-cyan-400">Resultado del Scraping</h3>
+                <h3 className="text-xl font-bold mb-4 text-violet-400">Resultado del Scraping</h3>
                 <div className="space-y-2 text-gray-300">
                   <p><span className="font-semibold text-white">URL:</span> {result.url}</p>
                   <p><span className="font-semibold text-white">Código de Estado:</span> {result.status_code}</p>
@@ -110,7 +110,7 @@ export default function Landing({ onGetStarted }) {
                   </p>
                   <button
                     onClick={onGetStarted}
-                    className="mt-3 px-6 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-semibold transition-colors"
+                    className="mt-3 px-6 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg font-semibold transition-colors"
                   >
                     Registrarse Ahora
                   </button>
@@ -130,8 +130,8 @@ export default function Landing({ onGetStarted }) {
           Características Principales
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 hover:border-cyan-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20">
-            <div className="w-14 h-14 bg-cyan-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/30">
+          <div className="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 hover:border-violet-500 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/20">
+            <div className="w-14 h-14 bg-violet-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-violet-500/30">
               <svg
                 className="w-8 h-8"
                 fill="none"
@@ -153,8 +153,8 @@ export default function Landing({ onGetStarted }) {
             </p>
           </div>
 
-          <div className="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 hover:border-teal-500 transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/20">
-            <div className="w-14 h-14 bg-teal-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-teal-500/30">
+          <div className="bg-gray-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 hover:border-indigo-500 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/20">
+            <div className="w-14 h-14 bg-indigo-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/30">
               <svg
                 className="w-8 h-8"
                 fill="none"
@@ -208,7 +208,7 @@ export default function Landing({ onGetStarted }) {
         </h2>
         <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg shadow-cyan-500/40">
+            <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg shadow-violet-500/40">
               1
             </div>
             <h3 className="text-xl font-bold mb-3">Ingresa la URL</h3>
@@ -217,7 +217,7 @@ export default function Landing({ onGetStarted }) {
             </p>
           </div>
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg shadow-teal-500/40">
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg shadow-indigo-500/40">
               2
             </div>
             <h3 className="text-xl font-bold mb-3">Configura tu Scraping</h3>
@@ -248,7 +248,7 @@ export default function Landing({ onGetStarted }) {
           </p>
           <button
             onClick={onGetStarted}
-            className="px-10 py-4 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-cyan-500/30"
+            className="px-10 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-violet-500/30"
           >
             Comenzar Gratis →
           </button>

@@ -12,7 +12,7 @@ import { useResults } from "../contexts/ResultsContext";
 export default function MainView({ handleLogout }) {
   const [activeTab, setActiveTab] = useState("scraping");
   const { showInfo } = useAlert();
-  const { results, selected, setSelected, usePagination, togglePaginationMode, loadResults } = useResults();
+  const { results, selected, setSelected, usePagination, togglePaginationMode, loadResults, isLoading } = useResults();
 
   const handleTogglePagination = () => {
     togglePaginationMode();
@@ -33,7 +33,7 @@ export default function MainView({ handleLogout }) {
                 <span className="text-sm text-gray-400">Paginación:</span>
                 <button
                   onClick={handleTogglePagination}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${usePagination ? "bg-cyan-600 shadow-lg shadow-cyan-500/30" : "bg-gray-600"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${usePagination ? "bg-violet-600 shadow-lg shadow-violet-500/30" : "bg-gray-600"
                     }`}
                   title={`${usePagination ? 'Desactivar' : 'Activar'} paginación`}
                 >
@@ -61,16 +61,16 @@ export default function MainView({ handleLogout }) {
         </header>
 
         <div className="mb-8">
-          <nav className="flex space-x-8 border-b border-white/20">
+          <nav className="flex space-x-1 border-b border-white/20">
             <button
               onClick={() => setActiveTab("scraping")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "scraping"
-                ? "border-cyan-500 text-cyan-400"
-                : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+              className={`py-3 px-5 border-b-2 font-medium text-sm transition-all duration-200 rounded-t-lg ${activeTab === "scraping"
+                ? "border-violet-500 text-violet-400 bg-violet-500/10"
+                : "border-transparent text-gray-400 hover:text-gray-300 hover:bg-white/5"
                 }`}
             >
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 Scraping Manual
@@ -78,13 +78,13 @@ export default function MainView({ handleLogout }) {
             </button>
             <button
               onClick={() => setActiveTab("schedules")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "schedules"
-                ? "border-cyan-500 text-cyan-400"
-                : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+              className={`py-3 px-5 border-b-2 font-medium text-sm transition-all duration-200 rounded-t-lg ${activeTab === "schedules"
+                ? "border-violet-500 text-violet-400 bg-violet-500/10"
+                : "border-transparent text-gray-400 hover:text-gray-300 hover:bg-white/5"
                 }`}
             >
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Schedules Automáticos
@@ -102,6 +102,7 @@ export default function MainView({ handleLogout }) {
             ) : (
               <ResultsList
                 results={results}
+                isLoading={isLoading}
                 onView={(r) => setSelected(r)}
                 onDelete={(id) => {
                   loadResults();

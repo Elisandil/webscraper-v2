@@ -19,7 +19,7 @@ export default function HealthIndicator() {
     <div className="fixed top-4 right-6 flex items-center space-x-2 text-sm bg-black/80 backdrop-blur-lg rounded-lg px-3 py-2 border border-white/20 shadow-lg">
       <span
         className={`inline-block w-2 h-2 rounded-full ${
-          online ? "bg-cyan-400 animate-pulse shadow-lg shadow-cyan-500/50" : "bg-red-400"
+          online ? "bg-violet-400 animate-pulse shadow-lg shadow-violet-500/50" : "bg-red-400"
         }`}
       ></span>
       <span className="text-gray-300 font-medium">

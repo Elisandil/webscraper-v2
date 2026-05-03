@@ -12,42 +12,41 @@ export function ResultsProvider({ children }) {
   const { isAuthenticated } = useAuth();
 
   const loadResults = useCallback(async () => {
-    if (!isAuthenticated) return;        setIsLoading(true);
-        try {
-            const { ok, data } = await apiRequest('/results');
-            if (ok) {
-                setResults(data.data || []);
-            }
-        } catch (error) {
-            console.error('Error loading results:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [isAuthenticated]);
+    if (!isAuthenticated) return;
+    setIsLoading(true);
+    try {
+      const { ok, data } = await apiRequest('/results?page=1&per_page=50');
+      if (ok) {
+        setResults(data.data?.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading results:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
 
-    // Toggle pagination mode
     const togglePaginationMode = useCallback(() => {
-        setUsePagination(prev => {
-            const newValue = !prev;
-            // If switching to non-pagination mode, load results immediately
-            if (!newValue) {
-                // Use setTimeout to ensure state update happens first
-                setTimeout(() => {
-                    loadResults();
-                }, 0);
-            }
-            return newValue;
-        });
-    }, [loadResults]);
+        setUsePagination(prev => !prev);
+    }, []);
 
-    // Auto-refresh results every 15 seconds (when not in pagination mode and authenticated)
+    // Subscribe to SSE for real-time updates. Falls back to 60s polling if the
+    // connection drops before EventSource auto-reconnects.
     useEffect(() => {
         if (usePagination || !isAuthenticated) return;
 
         loadResults();
-        const interval = setInterval(loadResults, 15000);
 
-        return () => clearInterval(interval);
+        const es = new EventSource('/api/results/events', { withCredentials: true });
+        es.onmessage = () => loadResults();
+
+        // Slow fallback in case SSE is temporarily disconnected
+        const fallback = setInterval(loadResults, 60000);
+
+        return () => {
+            es.close();
+            clearInterval(fallback);
+        };
     }, [usePagination, isAuthenticated, loadResults]);
 
     const value = {

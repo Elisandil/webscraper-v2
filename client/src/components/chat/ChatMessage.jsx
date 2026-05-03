@@ -6,7 +6,7 @@ export default function ChatMessage({ message, isUser }) {
       <div
         className={`max-w-[80%] rounded-lg px-4 py-3 ${
           isUser
-            ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white"
+            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white"
             : "bg-white/10 text-gray-100 border border-white/20"
         }`}
       >

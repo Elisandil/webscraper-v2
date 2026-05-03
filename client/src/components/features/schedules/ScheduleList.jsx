@@ -3,8 +3,37 @@ import { useSchedule } from "../../../contexts/ScheduleContext";
 import { useAlert } from "../../../contexts/AlertContext";
 import { apiRequest } from "../../../api/client";
 
+function SkeletonScheduleRow() {
+  return (
+    <div className="p-6 border-b border-white/10">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-5 w-48 bg-white/10 rounded animate-pulse" />
+            <div className="h-5 w-16 bg-white/10 rounded-full animate-pulse" />
+          </div>
+          <div className="h-4 w-64 bg-white/10 rounded animate-pulse mb-4" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i}>
+                <div className="h-3 w-20 bg-white/10 rounded animate-pulse mb-2" />
+                <div className="h-4 w-28 bg-white/10 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="ml-4 flex gap-2">
+          <div className="w-9 h-9 bg-white/10 rounded-lg animate-pulse" />
+          <div className="w-9 h-9 bg-white/10 rounded-lg animate-pulse" />
+          <div className="w-9 h-9 bg-white/10 rounded-lg animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ScheduleList({ onEdit }) {
-  const { schedules, isLoading, refreshSchedules } = useSchedule();
+  const { schedules, isLoading, refreshSchedules, openScheduleModal } = useSchedule();
   const { showSuccess, showError } = useAlert();
 
   const toggleScheduleStatus = async (schedule) => {
@@ -55,7 +84,7 @@ export default function ScheduleList({ onEdit }) {
     return (
       <span
         className={`px-2 py-1 text-xs font-medium rounded-full ${active
-          ? "bg-teal-500/20 text-teal-400 border border-teal-500/30"
+          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
           : "bg-red-500/20 text-red-400 border border-red-500/30"
           }`}
       >
@@ -85,9 +114,9 @@ export default function ScheduleList({ onEdit }) {
 
     if (diff < 0) return { text: "Pendiente", color: "bg-orange-500/20 text-orange-400" };
     if (diff < 60000) return { text: "En breve", color: "bg-yellow-500/20 text-yellow-400" };
-    if (diff < 3600000) return { text: `${Math.floor(diff / 60000)}m`, color: "bg-cyan-500/20 text-cyan-400" };
-    if (diff < 86400000) return { text: `${Math.floor(diff / 3600000)}h`, color: "bg-cyan-500/20 text-cyan-400" };
-    return { text: `${Math.floor(diff / 86400000)}d`, color: "bg-cyan-500/20 text-cyan-400" };
+    if (diff < 3600000) return { text: `${Math.floor(diff / 60000)}m`, color: "bg-violet-500/20 text-violet-400" };
+    if (diff < 86400000) return { text: `${Math.floor(diff / 3600000)}h`, color: "bg-violet-500/20 text-violet-400" };
+    return { text: `${Math.floor(diff / 86400000)}d`, color: "bg-violet-500/20 text-violet-400" };
   };
 
   const cronToHuman = (cronExpr) => {
@@ -101,13 +130,15 @@ export default function ScheduleList({ onEdit }) {
     return patterns[cronExpr] || cronExpr;
   };
 
-  if (isLoading) {
+  if (isLoading && schedules.length === 0) {
     return (
-      <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-6">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-          <span className="ml-3 text-gray-300">Cargando schedules...</span>
+      <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/20">
+          <div className="h-7 w-56 bg-white/10 rounded animate-pulse mb-2" />
+          <div className="h-4 w-36 bg-white/10 rounded animate-pulse" />
         </div>
+        <SkeletonScheduleRow />
+        <SkeletonScheduleRow />
       </div>
     );
   }
@@ -123,35 +154,30 @@ export default function ScheduleList({ onEdit }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-500/50"></div>
+            <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse shadow-lg shadow-violet-500/50"></div>
             <span className="text-sm text-gray-400">Scheduler activo</span>
           </div>
         </div>
       </div>
 
       {schedules.length === 0 ? (
-        <div className="p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+        <div className="py-16 px-8 flex flex-col items-center text-center">
+          <div className="w-20 h-20 mb-5 rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-white/10 flex items-center justify-center">
+            <svg className="w-10 h-10 text-violet-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-300 mb-2">
-            No hay schedules configurados
-          </h3>
-          <p className="text-gray-400 text-sm">
-            Crea tu primer schedule para automatizar el web scraping
+          <h3 className="text-lg font-semibold text-white mb-2">Sin schedules configurados</h3>
+          <p className="text-gray-400 text-sm mb-6 max-w-xs">
+            Automatiza el scraping de cualquier URL con una expresión cron. Set it and forget it.
           </p>
+          <button
+            onClick={() => openScheduleModal && openScheduleModal()}
+            className="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-violet-500/30 border border-violet-500/20"
+          >
+            Crear primer schedule
+          </button>
         </div>
       ) : (
         <div className="divide-y divide-white/20">
@@ -172,7 +198,7 @@ export default function ScheduleList({ onEdit }) {
                       {getStatusBadge(schedule.active)}
                     </div>
 
-                    <p className="text-cyan-400 text-sm mb-3 truncate">
+                    <p className="text-violet-400 text-sm mb-3 truncate">
                       {schedule.url}
                     </p>
 
@@ -182,7 +208,7 @@ export default function ScheduleList({ onEdit }) {
                         <div className="text-white">
                           {cronToHuman(schedule.cron_expression)}
                         </div>
-                        <code className="text-teal-400 font-mono text-xs">
+                        <code className="text-indigo-400 font-mono text-xs">
                           {schedule.cron_expression}
                         </code>
                       </div>
@@ -219,8 +245,8 @@ export default function ScheduleList({ onEdit }) {
                     <button
                       onClick={() => toggleScheduleStatus(schedule)}
                       className={`p-2 rounded-lg transition-colors ${schedule.active
-                        ? "text-teal-400 hover:text-teal-300 hover:bg-teal-400/10"
-                        : "text-gray-400 hover:text-teal-400 hover:bg-teal-400/10"
+                        ? "text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10"
+                        : "text-gray-400 hover:text-emerald-400 hover:bg-emerald-400/10"
                         }`}
                       title={schedule.active ? "Pausar schedule" : "Activar schedule"}
                     >

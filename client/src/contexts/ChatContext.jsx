@@ -18,15 +18,39 @@ export const ChatProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingIntent, setPendingIntent] = useState(null);
+  // Stores context when the bot asks a follow-up question (missing URL or frequency).
+  // Shape: { awaitingUrl: bool, awaitingFrequency: bool, partialIntent: ChatIntent }
+  const [conversationState, setConversationState] = useState(null);
   const { showSuccess, showError } = useAlert();
-    const { refreshSchedules } = useSchedule();
+  const { refreshSchedules } = useSchedule();
 
   const addMessage = (message, isUser = false) => {
     setMessages((prev) => [...prev, { text: message, isUser, timestamp: new Date() }]);
   };
 
+  // Builds a full natural-language message when the bot previously asked for
+  // a missing piece (URL or frequency), so the backend receives complete context.
+  const buildEnrichedMessage = (userMessage, state) => {
+    if (!state) return userMessage;
+    const pi = state.partialIntent || {};
+    if (state.awaitingUrl) {
+      if (pi.action === "create_schedule") {
+        const freq = pi.frequency || "diariamente";
+        return `programa ${userMessage} ${freq}`;
+      }
+      return `scrapea ${userMessage} ahora`;
+    }
+    if (state.awaitingFrequency && pi.url) {
+      return `programa ${pi.url} ${userMessage}`;
+    }
+    return userMessage;
+  };
+
   const sendMessage = async (message) => {
     if (!message.trim()) return;
+
+    const enriched = buildEnrichedMessage(message, conversationState);
+    setConversationState(null);
 
     addMessage(message, true);
     setIsLoading(true);
@@ -34,7 +58,7 @@ export const ChatProvider = ({ children }) => {
     try {
       const { ok, data } = await apiRequest("/chat/parse", {
         method: "POST",
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message: enriched }),
       });
 
       if (ok) {
@@ -42,6 +66,12 @@ export const ChatProvider = ({ children }) => {
 
         if (data.data.needs_confirm && data.data.intent) {
           setPendingIntent(data.data.intent);
+        } else if (data.data.action === "ask_url") {
+          setConversationState({ awaitingUrl: true, partialIntent: data.data.intent });
+          setPendingIntent(null);
+        } else if (data.data.action === "ask_frequency") {
+          setConversationState({ awaitingFrequency: true, partialIntent: data.data.intent });
+          setPendingIntent(null);
         } else {
           setPendingIntent(null);
         }
@@ -73,9 +103,7 @@ export const ChatProvider = ({ children }) => {
         addMessage(data.data.message, false);
         showSuccess(data.message);
         
-        if (pendingIntent.action === "scrape_now") {
-          window.dispatchEvent(new Event("reload-results"));
-        } else if (pendingIntent.action === "create_schedule") {
+        if (pendingIntent.action === "create_schedule") {
           await refreshSchedules();
         }
       } else {
@@ -95,11 +123,13 @@ export const ChatProvider = ({ children }) => {
     addMessage("Acción cancelada", true);
     addMessage("De acuerdo, ¿en qué más puedo ayudarte?", false);
     setPendingIntent(null);
+    setConversationState(null);
   };
 
   const clearChat = () => {
     setMessages([]);
     setPendingIntent(null);
+    setConversationState(null);
   };
 
   const toggleChat = () => {
@@ -115,6 +145,7 @@ export const ChatProvider = ({ children }) => {
     isOpen,
     isLoading,
     pendingIntent,
+    conversationState,
     sendMessage,
     confirmAction,
     cancelAction,

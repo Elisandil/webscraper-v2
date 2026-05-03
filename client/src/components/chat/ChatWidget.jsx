@@ -8,6 +8,7 @@ export default function ChatWidget() {
     isOpen,
     isLoading,
     pendingIntent,
+    conversationState,
     sendMessage,
     confirmAction,
     cancelAction,
@@ -48,33 +49,38 @@ export default function ChatWidget() {
   return (
     <>
       {!isOpen && (
-        <button
-          onClick={toggleChat}
-          className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white p-4 rounded-full shadow-2xl shadow-cyan-500/50 transition-all duration-300 hover:scale-110"
-          aria-label="Abrir chat asistente"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-            AI
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 group">
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg border border-white/10 shadow-lg whitespace-nowrap pointer-events-none">
+            Asistente IA
           </span>
-        </button>
+          <button
+            onClick={toggleChat}
+            className="relative bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-4 rounded-full shadow-2xl shadow-violet-500/50 transition-all duration-300 hover:scale-110"
+            aria-label="Abrir chat asistente"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+              />
+            </svg>
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+              AI
+            </span>
+          </button>
+        </div>
       )}
 
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50 w-96 h-[600px] bg-gray-900/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 px-4 py-3 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               <h3 className="text-white font-semibold">Asistente de Scraping</h3>
@@ -110,9 +116,9 @@ export default function ChatWidget() {
               <div className="flex justify-start mb-4">
                 <div className="bg-white/10 rounded-lg px-4 py-3 border border-white/20">
                   <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                    <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                    <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                    <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                   </div>
                 </div>
               </div>
@@ -122,7 +128,7 @@ export default function ChatWidget() {
           </div>
 
           {pendingIntent && !isLoading && (
-            <div className="px-4 py-3 bg-teal-500/10 border-t border-teal-500/20 flex gap-2">
+            <div className="px-4 py-3 bg-indigo-500/10 border-t border-indigo-500/20 flex gap-2">
               <button
                 onClick={handleConfirm}
                 className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium"
@@ -139,33 +145,47 @@ export default function ChatWidget() {
           )}
 
           <form onSubmit={handleSubmit} className="p-4 border-t border-white/10">
+            {conversationState && (
+              <div className="mb-2 px-3 py-2 rounded-lg bg-violet-500/10 border border-violet-500/20 text-xs text-violet-300">
+                {conversationState.awaitingUrl
+                  ? "Escribe la URL que deseas usar"
+                  : "Escribe la frecuencia (ej: cada 2 horas, diariamente)"}
+              </div>
+            )}
             <div className="flex gap-2">
               <input
                 ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Escribe tu mensaje..."
-                className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                placeholder={
+                  conversationState?.awaitingUrl
+                    ? "ejemplo.com o https://ejemplo.com"
+                    : conversationState?.awaitingFrequency
+                    ? "cada 2 horas, diariamente, semanalmente..."
+                    : "Escribe tu mensaje..."
+                }
+                className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
               </button>
             </div>
-            
-            {messages.length === 1 && (
+
+            {messages.length === 1 && !conversationState && (
               <div className="mt-3 text-xs text-gray-400">
                 <p className="mb-1">💡 Ejemplos:</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>"Scrapea https://example.com ahora"</li>
+                  <li>"Scrapea reddit.com ahora"</li>
                   <li>"Programa reddit.com cada 2 horas"</li>
+                  <li>"Automatiza example.com diariamente"</li>
                 </ul>
               </div>
             )}

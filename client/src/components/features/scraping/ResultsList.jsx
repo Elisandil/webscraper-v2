@@ -1,7 +1,22 @@
 import React from "react";
 import { apiRequest } from "../../../api/client";
 
-export default function ResultsList({ results, onView, onDelete }) {
+function SkeletonRow() {
+  return (
+    <div className="p-6 border-b border-white/10">
+      <div className="h-5 w-2/3 bg-white/10 rounded animate-pulse mb-2" />
+      <div className="h-4 w-1/2 bg-white/10 rounded animate-pulse mb-4" />
+      <div className="flex gap-4">
+        <div className="h-4 w-16 bg-white/10 rounded animate-pulse" />
+        <div className="h-4 w-16 bg-white/10 rounded animate-pulse" />
+        <div className="h-4 w-24 bg-white/10 rounded animate-pulse" />
+        <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+export default function ResultsList({ results, onView, onDelete, isLoading }) {
   const handleDelete = async (id, e) => {
     e.stopPropagation();
     if (!window.confirm("¿Estás seguro de que quieres eliminar este resultado?")) {
@@ -15,7 +30,7 @@ export default function ResultsList({ results, onView, onDelete }) {
   };
 
   const getStatusColor = (statusCode) => {
-    if (statusCode >= 200 && statusCode < 300) return "text-teal-400";
+    if (statusCode >= 200 && statusCode < 300) return "text-emerald-400";
     if (statusCode >= 400 && statusCode < 500) return "text-orange-400";
     if (statusCode >= 500) return "text-red-400";
     return "text-gray-400";
@@ -31,6 +46,20 @@ export default function ResultsList({ results, onView, onDelete }) {
     });
   };
 
+  if (isLoading && results.length === 0) {
+    return (
+      <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/20">
+          <div className="h-7 w-52 bg-white/10 rounded animate-pulse mb-2" />
+          <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+        </div>
+        <SkeletonRow />
+        <SkeletonRow />
+        <SkeletonRow />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
       <div className="px-6 py-4 border-b border-white/20">
@@ -41,27 +70,16 @@ export default function ResultsList({ results, onView, onDelete }) {
       </div>
 
       {results.length === 0 ? (
-        <div className="p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
+        <div className="py-16 px-8 flex flex-col items-center text-center">
+          <div className="w-20 h-20 mb-5 rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 border border-white/10 flex items-center justify-center">
+            <svg className="w-10 h-10 text-violet-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-300 mb-2">
-            No hay resultados aún
-          </h3>
-          <p className="text-gray-400 text-sm">
-            Realiza tu primer web scraping para ver los resultados aquí
+          <h3 className="text-lg font-semibold text-white mb-2">Aún no hay resultados</h3>
+          <p className="text-gray-400 text-sm max-w-xs">
+            Ingresa una URL en el formulario de arriba para extraer su contenido y verlo aquí.
           </p>
         </div>
       ) : (
@@ -79,7 +97,7 @@ export default function ResultsList({ results, onView, onDelete }) {
                       <h3 className="text-lg font-semibold text-white mb-1 truncate">
                         {result.title || "Sin título"}
                       </h3>
-                      <p className="text-cyan-400 text-sm mb-3 truncate">
+                      <p className="text-violet-400 text-sm mb-3 truncate">
                         {result.url}
                       </p>
                       
@@ -90,6 +108,22 @@ export default function ResultsList({ results, onView, onDelete }) {
                       )}
                       
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                        {result.seo_score !== undefined && (
+                          <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
+                            result.seo_score >= 70
+                              ? "bg-teal-500/20 text-teal-400"
+                              : result.seo_score >= 40
+                              ? "bg-orange-500/20 text-orange-400"
+                              : "bg-red-500/20 text-red-400"
+                          }`}>
+                            SEO {result.seo_score}
+                          </span>
+                        )}
+                        {result.robots_directive?.toLowerCase().includes("noindex") && (
+                          <span className="text-xs px-2 py-0.5 rounded font-semibold bg-red-500/20 text-red-400">
+                            noindex
+                          </span>
+                        )}
                         <div className="flex items-center gap-1">
                           <span>Estado:</span>
                           <span

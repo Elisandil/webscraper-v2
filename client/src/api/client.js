@@ -1,24 +1,19 @@
 const API_BASE = '/api';
 
 export async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem('jwtToken');
-  
-  if (path !== '/auth/login' && path !== '/auth/register' && !token) {
-    return { ok: false, status: 401, data: { error: 'No autenticado' } };
-  }
+  const { noRedirectOn401, ...fetchOptions } = options;
 
   const res = await fetch(`${API_BASE}${path}`, {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      ...(options.headers || {})
+      ...(fetchOptions.headers || {}),
     },
-    ...options,
+    ...fetchOptions,
   });
 
-  if (res.status === 401) {
-    localStorage.removeItem('jwtToken');
-    window.location.reload();
+  if (res.status === 401 && !noRedirectOn401) {
+    window.location.href = '/';
     return { ok: false, status: 401, data: { error: 'Sesión expirada' } };
   }
 
@@ -28,9 +23,10 @@ export async function apiRequest(path, options = {}) {
 
 export async function publicApiRequest(path, options = {}) {
   const res = await fetch(`${API_BASE}/public${path}`, {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
+      ...(options.headers || {}),
     },
     ...options,
   });

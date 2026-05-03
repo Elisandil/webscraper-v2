@@ -117,7 +117,7 @@ export default function ScheduleModal() {
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={(e) => e.target === e.currentTarget && closeModal()}
     >
-      <div className="bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="animate-modal-in bg-black/80 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-white/20">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-white">
@@ -145,7 +145,7 @@ export default function ScheduleModal() {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
               placeholder="Ej: Scraping diario de noticias"
               required
               disabled={isLoading}
@@ -160,7 +160,7 @@ export default function ScheduleModal() {
               type="url"
               value={formData.url}
               onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
               placeholder="https://ejemplo.com"
               required
               disabled={isLoading}
@@ -175,7 +175,7 @@ export default function ScheduleModal() {
               type="text"
               value={formData.cronExpr}
               onChange={(e) => setFormData({ ...formData, cronExpr: e.target.value })}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 font-mono text-sm"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 font-mono text-sm"
               placeholder="0 0 8 * * *"
               required
               disabled={isLoading}
@@ -198,7 +198,7 @@ export default function ScheduleModal() {
                   className="text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-sm disabled:opacity-50"
                   disabled={isLoading}
                 >
-                  <code className="text-cyan-400 font-mono text-xs block mb-1">{example.value}</code>
+                  <code className="text-violet-400 font-mono text-xs block mb-1">{example.value}</code>
                   <span className="text-gray-300">{example.label}</span>
                 </button>
               ))}
@@ -211,7 +211,7 @@ export default function ScheduleModal() {
               id="active"
               checked={formData.active}
               onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              className="w-4 h-4 text-cyan-600 bg-white/10 border-white/20 rounded focus:ring-cyan-500 focus:ring-2"
+              className="w-4 h-4 text-violet-600 bg-white/10 border-white/20 rounded focus:ring-violet-500 focus:ring-2"
               disabled={isLoading}
             />
             <label htmlFor="active" className="ml-2 text-sm font-medium text-gray-300">
@@ -223,7 +223,7 @@ export default function ScheduleModal() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/30 backdrop-blur-sm border border-cyan-500/20"
+              className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-violet-500/30 backdrop-blur-sm border border-violet-500/20"
             >
               {isLoading ? (
                 <>

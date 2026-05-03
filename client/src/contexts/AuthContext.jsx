@@ -8,40 +8,23 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('jwtToken');
-    if (token) {
-      apiRequest('/results')
-        .then(({ ok }) => {
-          if (ok) {
-            setUser(true);
-          } else {
-            localStorage.removeItem('jwtToken');
-            setUser(null);
-          }
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
+    apiRequest('/profile', { noRedirectOn401: true })
+      .then(({ ok, data }) => {
+        setUser(ok ? (data.data || true) : null);
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const login = useCallback((token) => {
-    localStorage.setItem('jwtToken', token);
-    setUser(true);
+  const login = useCallback((userData) => {
+    setUser(userData || true);
   }, []);
 
   const logout = useCallback(async () => {
-    const token = localStorage.getItem('jwtToken');
-    if (token) {
-      try {
-        await apiRequest('/auth/logout', {
-          method: 'POST',
-        });
-      } catch (error) {
-        console.error('Logout error:', error);
-      }
+    try {
+      await apiRequest('/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.error('Logout error:', error);
     }
-    localStorage.removeItem('jwtToken');
     setUser(null);
   }, []);
 

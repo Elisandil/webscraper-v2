@@ -42,7 +42,7 @@ export default function PaginatedResultsList({ onView, onAlert }) {
   };
 
   const getStatusColor = (statusCode) => {
-    if (statusCode >= 200 && statusCode < 300) return "text-teal-400";
+    if (statusCode >= 200 && statusCode < 300) return "text-emerald-400";
     if (statusCode >= 400 && statusCode < 500) return "text-orange-400";
     if (statusCode >= 500) return "text-red-400";
     return "text-gray-400";
@@ -137,7 +137,7 @@ export default function PaginatedResultsList({ onView, onAlert }) {
                         <h3 className="text-lg font-semibold text-white mb-1 truncate">
                           {result.title || "Sin título"}
                         </h3>
-                        <p className="text-cyan-400 text-sm mb-3 truncate">
+                        <p className="text-violet-400 text-sm mb-3 truncate">
                           {result.url}
                         </p>
                         

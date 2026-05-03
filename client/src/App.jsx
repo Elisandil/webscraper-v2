@@ -25,7 +25,7 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 shadow-lg shadow-cyan-500/40"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 shadow-lg shadow-violet-500/40"></div>
       </div>
     );
   }

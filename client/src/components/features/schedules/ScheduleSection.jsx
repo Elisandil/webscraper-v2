@@ -18,7 +18,7 @@ export default function ScheduleSection() {
 
         <button
           onClick={() => openScheduleModal()}
-          className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg shadow-cyan-500/30 backdrop-blur-sm border border-cyan-500/20"
+          className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg shadow-violet-500/30 backdrop-blur-sm border border-violet-500/20"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

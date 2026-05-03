@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -34,6 +35,10 @@ func NewSQLiteDB(dbPath string) (*SQLiteDB, error) {
 
 	sqliteDB := &SQLiteDB{DB: db}
 	if err := sqliteDB.createTables(); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+	if err := sqliteDB.migrateV2(); err != nil {
 		_ = db.Close()
 		return nil, err
 	}
@@ -135,17 +140,31 @@ func (db *SQLiteDB) createTables() error {
 		return err
 	}
 
-	revokedTokensQuery := `
-	CREATE TABLE IF NOT EXISTS revoked_tokens (
-		token TEXT PRIMARY KEY,
-		expires_at DATETIME NOT NULL,
-		revoked_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);
-	CREATE INDEX IF NOT EXISTS idx_revoked_tokens_expires_at ON revoked_tokens(expires_at);`
-
-	if _, err := db.Exec(revokedTokensQuery); err != nil {
-		return err
-	}
-
 	return nil
 }
+
+func (db *SQLiteDB) migrateV2() error {
+	alterations := []string{
+		`ALTER TABLE scraping_results ADD COLUMN canonical_url TEXT DEFAULT ''`,
+		`ALTER TABLE scraping_results ADD COLUMN robots_directive TEXT DEFAULT ''`,
+		`ALTER TABLE scraping_results ADD COLUMN x_robots_tag TEXT DEFAULT ''`,
+		`ALTER TABLE scraping_results ADD COLUMN viewport TEXT DEFAULT ''`,
+		`ALTER TABLE scraping_results ADD COLUMN og_data TEXT DEFAULT '{}'`,
+		`ALTER TABLE scraping_results ADD COLUMN twitter_card TEXT DEFAULT '{}'`,
+		`ALTER TABLE scraping_results ADD COLUMN schema_org TEXT DEFAULT '[]'`,
+		`ALTER TABLE scraping_results ADD COLUMN redirect_chain TEXT DEFAULT '[]'`,
+		`ALTER TABLE scraping_results ADD COLUMN final_url TEXT DEFAULT ''`,
+		`ALTER TABLE scraping_results ADD COLUMN h1_count INTEGER DEFAULT 0`,
+		`ALTER TABLE scraping_results ADD COLUMN has_multiple_h1 BOOLEAN DEFAULT false`,
+		`ALTER TABLE scraping_results ADD COLUMN seo_score INTEGER DEFAULT 0`,
+	}
+	for _, stmt := range alterations {
+		if _, err := db.Exec(stmt); err != nil {
+			if !strings.Contains(err.Error(), "duplicate column name") {
+				return fmt.Errorf("migration error: %w", err)
+			}
+		}
+	}
+	return nil
+}
+

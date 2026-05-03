@@ -68,7 +68,7 @@ func (uc *ChatUseCase) InterpretMessage(message string, parentCtx context.Contex
 		return intent, nil
 	}
 
-	if uc.hfAPIToken != "" || uc.config.Chat != nil {
+	if uc.hfAPIToken != "" {
 		llmIntent, err := uc.interpretWithLLM(message, parentCtx)
 		if err == nil {
 			return llmIntent, nil
@@ -86,14 +86,28 @@ func (uc *ChatUseCase) trySimpleRules(message string) *entity.ChatIntent {
 		Confidence: 0.0,
 	}
 
+	// First try explicit protocol URLs.
 	urlRegex := regexp.MustCompile(`https?://[^\s]+`)
 	urlMatches := urlRegex.FindAllString(originalMessage, -1)
 	if len(urlMatches) > 0 {
 		intent.URL = urlMatches[0]
 		intent.Confidence += 0.4
+	} else {
+		// Fall back to bare domain detection (e.g. "reddit.com", "example.co.uk/path").
+		domainRegex := regexp.MustCompile(`(?i)\b([\w-]+\.(?:com|org|net|io|co|dev|app|es|eu|gov|edu|info|me|xyz|uk|us|fr|de|tv|ai|gg)(?:/[^\s]*)?)\b`)
+		domainMatches := domainRegex.FindAllString(originalMessage, -1)
+		if len(domainMatches) > 0 {
+			intent.URL = "https://" + domainMatches[0]
+			intent.Confidence += 0.4
+		}
 	}
 
-	scheduleKeywords := []string{"programa", "programar", "schedule", "cada", "todos los", "diariamente", "semanalmente", "horario"}
+	scheduleKeywords := []string{
+		"programa", "programar", "schedule", "scheduled", "cada", "todos los",
+		"diariamente", "semanalmente", "mensualmente", "horario", "automático",
+		"automatiza", "automatizar", "recurrente", "periódico", "repetir",
+		"every", "daily", "weekly", "hourly", "monthly", "recurring",
+	}
 	hasScheduleKeyword := false
 	for _, keyword := range scheduleKeywords {
 		if strings.Contains(message, keyword) {
@@ -112,7 +126,10 @@ func (uc *ChatUseCase) trySimpleRules(message string) *entity.ChatIntent {
 		return intent
 	}
 
-	immediateKeywords := []string{"ahora", "inmediatamente", "ya", "scrapea", "escanea", "analiza"}
+	immediateKeywords := []string{
+		"ahora", "inmediatamente", "ya", "scrapea", "escanea", "analiza",
+		"extrae", "obtén", "obtener", "descarga", "scrape", "fetch", "get",
+	}
 	for _, keyword := range immediateKeywords {
 		if strings.Contains(message, keyword) {
 			intent.Action = "scrape_now"
@@ -256,7 +273,8 @@ func (uc *ChatUseCase) intervalToCron(interval *timeInterval) (cronExpr, frequen
 			cronExpr = "0 0 0 * * 0"
 			freqText = "semanalmente"
 		} else {
-			cronExpr = fmt.Sprintf("0 0 0 * * 0/%d", interval.value)
+			// DOW does not support step values; use day-of-month steps of 7*N days instead.
+			cronExpr = fmt.Sprintf("0 0 0 */%d * *", interval.value*7)
 			freqText = fmt.Sprintf("cada %d semanas", interval.value)
 		}
 

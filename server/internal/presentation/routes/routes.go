@@ -2,6 +2,8 @@ package routes
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
 	"webscraper-v2/internal/infrastructure/config"
 	"webscraper-v2/internal/presentation/handlers"
 	"webscraper-v2/internal/presentation/middleware"
@@ -68,14 +70,33 @@ func (rt *Router) SetupRoutes() *mux.Router {
 		http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/"))),
 	)
 	rt.setupAuthRoutes()
-
 	rt.setupPublicRoutes()
-
 	rt.setupAPIRoutes()
-
 	rt.setupAdminRoutes()
+	rt.setupSPARoutes()
 
 	return rt.router
+}
+
+// setupSPARoutes serves the React build from ../client/dist (relative to the
+// server binary). All non-API paths fall back to index.html so client-side
+// routing works correctly. The route is skipped if the dist directory does not
+// exist (e.g. during development when Vite runs separately).
+func (rt *Router) setupSPARoutes() {
+	distPath := "../client/dist"
+	if _, err := os.Stat(distPath); os.IsNotExist(err) {
+		return
+	}
+
+	fs := http.FileServer(http.Dir(distPath))
+	rt.router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		target := filepath.Join(distPath, filepath.Clean(r.URL.Path))
+		if _, err := os.Stat(target); os.IsNotExist(err) {
+			http.ServeFile(w, r, filepath.Join(distPath, "index.html"))
+			return
+		}
+		fs.ServeHTTP(w, r)
+	})
 }
 
 func (rt *Router) setupAuthRoutes() {
@@ -103,8 +124,10 @@ func (rt *Router) setupAPIRoutes() {
 	scraping.Use(rt.moderateLimiter.Limit)
 	scraping.HandleFunc("", rt.scrapingHandler.Scrape).Methods("POST")
 
+	api.HandleFunc("/results/events", rt.scrapingHandler.StreamResults).Methods("GET")
 	api.HandleFunc("/results", rt.scrapingHandler.GetResults).Methods("GET")
 	api.HandleFunc("/results/{id:[0-9]+}", rt.scrapingHandler.GetResult).Methods("GET")
+	api.HandleFunc("/results/{id:[0-9]+}", rt.scrapingHandler.DeleteResult).Methods("DELETE")
 	api.HandleFunc("/schedules", rt.scheduleHandler.Create).Methods("POST")
 	api.HandleFunc("/schedules", rt.scheduleHandler.GetAll).Methods("GET")
 	api.HandleFunc("/schedules/{id:[0-9]+}", rt.scheduleHandler.GetByID).Methods("GET")
@@ -114,8 +137,6 @@ func (rt *Router) setupAPIRoutes() {
 	api.HandleFunc("/chat/parse", rt.chatHandler.ParseMessage).Methods("POST")
 	api.HandleFunc("/chat/execute", rt.chatHandler.ExecuteAction).Methods("POST")
 
-	api.HandleFunc("/profile", rt.authHandler.Profile).Methods("GET")
-	api.HandleFunc("/health", rt.commonHandler.Health).Methods("GET")
 	api.HandleFunc("/profile", rt.authHandler.Profile).Methods("GET")
 	api.HandleFunc("/health", rt.commonHandler.Health).Methods("GET")
 

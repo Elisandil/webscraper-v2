@@ -34,8 +34,11 @@ func NewServer(
 ) *Server {
 	jwtMiddleware := middleware.NewJWTMiddleware(authUC)
 
+	sseHub := handlers.NewSSEHub()
+	scrapingUC.SetNotifier(sseHub)
+
 	authHandler := handlers.NewAuthHandler(authUC)
-	scrapingHandler := handlers.NewScrapingHandler(scrapingUC)
+	scrapingHandler := handlers.NewScrapingHandler(scrapingUC, sseHub)
 	scheduleHandler := handlers.NewScheduleHandler(scheduleUC)
 	chatHandler := handlers.NewChatHandler(chatUC, scrapingUC, scheduleUC)
 	commonHandler := handlers.NewCommonHandler(cfg)

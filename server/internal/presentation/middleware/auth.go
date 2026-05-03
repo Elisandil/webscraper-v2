@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"strings"
 	"webscraper-v2/internal/domain/entity"
 	"webscraper-v2/internal/usecase"
 )
@@ -25,19 +24,12 @@ func NewJWTMiddleware(authUseCase *usecase.AuthUseCase) *JWTMiddleware {
 
 func (m *JWTMiddleware) RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-
-		if authHeader == "" {
-			m.sendUnauthorized(w, "Authorization header required")
+		cookie, err := r.Cookie("auth_token")
+		if err != nil {
+			m.sendUnauthorized(w, "Authentication required")
 			return
 		}
-		tokenParts := strings.Split(authHeader, " ")
-
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			m.sendUnauthorized(w, "Invalid authorization header format")
-			return
-		}
-		tokenString := tokenParts[1]
+		tokenString := cookie.Value
 		claims, err := m.authUseCase.ValidateToken(tokenString)
 
 		if err != nil {

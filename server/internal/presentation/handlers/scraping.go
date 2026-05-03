@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"webscraper-v2/internal/presentation/middleware"
 	"webscraper-v2/internal/presentation/response"
 	"webscraper-v2/internal/usecase"
@@ -16,11 +17,13 @@ import (
 
 type ScrapingHandler struct {
 	scrapingUseCase *usecase.ScrapingUseCase
+	hub             *SSEHub
 }
 
-func NewScrapingHandler(scrapingUseCase *usecase.ScrapingUseCase) *ScrapingHandler {
+func NewScrapingHandler(scrapingUseCase *usecase.ScrapingUseCase, hub *SSEHub) *ScrapingHandler {
 	return &ScrapingHandler{
 		scrapingUseCase: scrapingUseCase,
+		hub:             hub,
 	}
 }
 
@@ -75,26 +78,32 @@ func (h *ScrapingHandler) PublicScrape(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ScrapingHandler) GetResults(w http.ResponseWriter, r *http.Request) {
-
-	if r.URL.Query().Get("page") != "" || r.URL.Query().Get("per_page") != "" {
-		h.GetResultsPaginated(w, r)
-		return
-	}
 	user := middleware.GetUserFromContext(r.Context())
-
 	if user == nil {
 		response.SendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-	results, err := h.scrapingUseCase.GetAllResults(user.ID)
 
+	page, perPage := 1, 50
+	if p, err := strconv.Atoi(r.URL.Query().Get("page")); err == nil && p > 0 {
+		page = p
+	}
+	if pp, err := strconv.Atoi(r.URL.Query().Get("per_page")); err == nil && pp > 0 {
+		perPage = pp
+	}
+
+	paginatedResults, err := h.scrapingUseCase.GetAllResultsPaginated(user.ID, page, perPage)
 	if err != nil {
 		log.Printf("Error getting results: %v", err)
 		response.SendErrorResponse(w, "Failed to retrieve results", http.StatusInternalServerError, err.Error())
 		return
 	}
-	log.Printf("Retrieved %d scraping results", len(results))
-	response.SendSuccessResponse(w, fmt.Sprintf("Retrieved %d results", len(results)), results)
+	log.Printf("Retrieved %d results (page %d/%d) for user %d",
+		len(paginatedResults.Data),
+		paginatedResults.Pagination.CurrentPage,
+		paginatedResults.Pagination.TotalPages,
+		user.ID)
+	response.SendSuccessResponse(w, "Results retrieved successfully", paginatedResults)
 }
 
 func (h *ScrapingHandler) GetResult(w http.ResponseWriter, r *http.Request) {
@@ -157,44 +166,46 @@ func (h *ScrapingHandler) DeleteResult(w http.ResponseWriter, r *http.Request) {
 	response.SendNoContent(w)
 }
 
-func (h *ScrapingHandler) GetResultsPaginated(w http.ResponseWriter, r *http.Request) {
-	user := middleware.GetUserFromContext(r.Context())
 
+func (h *ScrapingHandler) StreamResults(w http.ResponseWriter, r *http.Request) {
+	user := middleware.GetUserFromContext(r.Context())
 	if user == nil {
 		response.SendErrorResponse(w, "Authentication required", http.StatusUnauthorized, "")
 		return
 	}
-	pageStr := r.URL.Query().Get("page")
-	perPageStr := r.URL.Query().Get("per_page")
-	page := 1
-	perPage := 10
 
-	if pageStr != "" {
-
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
-		}
-	}
-	if perPageStr != "" {
-
-		if pp, err := strconv.Atoi(perPageStr); err == nil && pp > 0 {
-			perPage = pp
-		}
-	}
-	paginatedResults, err := h.scrapingUseCase.GetAllResultsPaginated(user.ID, page, perPage)
-
-	if err != nil {
-		log.Printf("Error getting paginated results: %v", err)
-		response.SendErrorResponse(w, "Failed to retrieve results", http.StatusInternalServerError, err.Error())
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		response.SendErrorResponse(w, "Streaming not supported", http.StatusInternalServerError, "")
 		return
 	}
-	log.Printf("Retrieved %d results (page %d of %d) for user %d",
-		len(paginatedResults.Data),
-		paginatedResults.Pagination.CurrentPage,
-		paginatedResults.Pagination.TotalPages,
-		user.ID)
 
-	response.SendSuccessResponse(w, "Results retrieved successfully", paginatedResults)
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no")
+
+	ch, unsubscribe := h.hub.subscribe(user.ID)
+	defer unsubscribe()
+
+	fmt.Fprintf(w, "data: connected\n\n")
+	flusher.Flush()
+
+	keepalive := time.NewTicker(30 * time.Second)
+	defer keepalive.Stop()
+
+	for {
+		select {
+		case <-ch:
+			fmt.Fprintf(w, "data: new-result\n\n")
+			flusher.Flush()
+		case <-keepalive.C:
+			fmt.Fprintf(w, ": keepalive\n\n")
+			flusher.Flush()
+		case <-r.Context().Done():
+			return
+		}
+	}
 }
 
 func parseID(r *http.Request) (int64, error) {

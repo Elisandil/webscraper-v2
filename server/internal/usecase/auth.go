@@ -199,6 +199,11 @@ func (uc *AuthUseCase) RefreshToken(tokenString string) (*entity.AuthResponse, e
 		return nil, pkgerrors.InternalError("failed to generate token", err)
 	}
 
+	// Revoke the old token so it cannot be reused after refresh.
+	if err := uc.tokenRepo.RevokeToken(tokenString, claims.ExpiresAt.Time); err != nil {
+		return nil, pkgerrors.DatabaseError("revoke old token", err)
+	}
+
 	user.Password = ""
 
 	return &entity.AuthResponse{
@@ -211,13 +216,13 @@ func (uc *AuthUseCase) RefreshToken(tokenString string) (*entity.AuthResponse, e
 func (uc *AuthUseCase) RevokeToken(tokenString string) error {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(uc.config.Auth.JWTSecret), nil
-	})
+	}, jwt.WithoutClaimsValidation())
 
 	if err != nil {
 		return pkgerrors.Wrap(err, "failed to parse token")
 	}
 
-	if claims, ok := token.Claims.(*Claims); ok {
+	if claims, ok := token.Claims.(*Claims); ok && claims.ExpiresAt != nil {
 		if err := uc.tokenRepo.RevokeToken(tokenString, claims.ExpiresAt.Time); err != nil {
 			return pkgerrors.DatabaseError("revoke token", err)
 		}

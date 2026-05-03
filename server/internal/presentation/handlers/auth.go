@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
+	"os"
+	"time"
 	"webscraper-v2/internal/domain/entity"
 	"webscraper-v2/internal/presentation/middleware"
 	"webscraper-v2/internal/presentation/response"
 	"webscraper-v2/internal/usecase"
 )
+
+const authCookieName = "auth_token"
 
 type AuthHandler struct {
 	authUseCase *usecase.AuthUseCase
@@ -19,6 +22,31 @@ func NewAuthHandler(authUseCase *usecase.AuthUseCase) *AuthHandler {
 	return &AuthHandler{
 		authUseCase: authUseCase,
 	}
+}
+
+func (h *AuthHandler) setAuthCookie(w http.ResponseWriter, token string, expiresAt time.Time) {
+	secure := os.Getenv("ENV") != "development"
+	http.SetCookie(w, &http.Cookie{
+		Name:     authCookieName,
+		Value:    token,
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   int(time.Until(expiresAt).Seconds()),
+	})
+}
+
+func (h *AuthHandler) clearAuthCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     authCookieName,
+		Value:    "",
+		HttpOnly: true,
+		Secure:   os.Getenv("ENV") != "development",
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   -1,
+	})
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -49,55 +77,48 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := h.authUseCase.Login(&req)
-
 	if err != nil {
 		log.Printf("Login error for user %s: %v", req.Username, err)
 		response.SendErrorResponse(w, "Login failed", http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 	log.Printf("User logged in successfully: %s", req.Username)
+	h.setAuthCookie(w, resp.Token, resp.ExpiresAt)
+	resp.Token = ""
 	response.SendSuccessResponse(w, "Login successful", resp)
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Token string `json:"token"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.SendErrorResponse(w, "Invalid JSON format", http.StatusBadRequest, err.Error())
+	cookie, err := r.Cookie(authCookieName)
+	if err != nil {
+		response.SendErrorResponse(w, "No active session", http.StatusUnauthorized, "")
 		return
 	}
 
-	resp, err := h.authUseCase.RefreshToken(req.Token)
-
+	resp, err := h.authUseCase.RefreshToken(cookie.Value)
 	if err != nil {
 		log.Printf("Token refresh error: %v", err)
+		h.clearAuthCookie(w)
 		response.SendErrorResponse(w, "Token refresh failed", http.StatusUnauthorized, err.Error())
 		return
 	}
+	h.setAuthCookie(w, resp.Token, resp.ExpiresAt)
+	resp.Token = ""
 	response.SendSuccessResponse(w, "Token refreshed successfully", resp)
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		response.SendErrorResponse(w, "Authorization header required", http.StatusBadRequest, "")
+	cookie, err := r.Cookie(authCookieName)
+	if err != nil {
+		response.SendErrorResponse(w, "No active session", http.StatusBadRequest, "")
 		return
 	}
 
-	tokenParts := strings.Split(authHeader, " ")
-	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		response.SendErrorResponse(w, "Invalid authorization header", http.StatusBadRequest, "")
-		return
-	}
-
-	tokenString := tokenParts[1]
-	if err := h.authUseCase.RevokeToken(tokenString); err != nil {
+	if err := h.authUseCase.RevokeToken(cookie.Value); err != nil {
 		response.SendErrorResponse(w, "Failed to revoke token", http.StatusBadRequest, err.Error())
 		return
 	}
-
+	h.clearAuthCookie(w)
 	response.SendSuccessResponse(w, "Logged out successfully", nil)
 }
 

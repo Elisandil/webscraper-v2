@@ -75,11 +75,23 @@ package: build-all
 	
 	@echo "Portable packages created in $(BUILD_DIR)/packages/"
 
-# Run the application
+# Run the application (backend only, Vite handles frontend in dev)
 run:
 	@echo "Starting $(BINARY_NAME)..."
 	@mkdir -p data
 	@go run main.go
+
+# Build frontend and run backend serving it as a single process
+serve: build-frontend
+	@echo "Starting $(BINARY_NAME) with embedded frontend..."
+	@mkdir -p data
+	@go run main.go
+
+# Build the React frontend (output: ../client/dist)
+build-frontend:
+	@echo "Building frontend..."
+	@cd ../client && pnpm install --frozen-lockfile && pnpm build
+	@echo "Frontend built successfully."
 
 # Clean build artifacts
 clean:
